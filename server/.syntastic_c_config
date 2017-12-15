@@ -1,0 +1,3 @@
+-I/usr/lib/avr/include
+-DHAVE_arduino2009
+-mmcu=atmega328

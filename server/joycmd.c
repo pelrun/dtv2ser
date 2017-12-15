@@ -1,0 +1,117 @@
+/*
+ * joycmd.c - joystick commands
+ *
+ * Written by
+ *  Christian Vogelgsang <chris@vogelgsang.org>
+ *
+ * This file is part of dtv2ser.
+ * See README for copyright notice.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307  USA.
+ *
+ */
+
+#include "joycmd.h"
+#include "joy.h"
+#include "display.h"
+#include "timer.h"
+#include "uart.h"
+
+// ---------- Joystick ----------
+
+#ifdef USE_JOYSTICK
+
+// ----- joy stream -----
+
+static u08 command;
+static u08 value;
+static u16 delay;
+
+void exec_joy_stream(void)
+{
+  uart_start_reception();
+  uart_send(0);
+
+  joy_begin();
+
+  u08 result = JOY_COMMAND_OK;
+  u08 need_cmd = 1;
+  u08 led_on = 0;
+  while(1) {
+    if(need_cmd) {
+      // wait for next command
+      if(!uart_read(&command)) {
+        result = JOY_COMMAND_ERROR;
+        break;
+      }
+    } else {
+      need_cmd = 1;
+    }
+
+    // extract command and value
+    value = command & JOY_MASK;
+    command &= JOY_COMMAND_MASK;
+
+    // exit stream command
+    if(command==JOY_COMMAND_EXIT) {
+      // reply status OK
+      break;
+    }
+    // set value command
+    else if(command==JOY_COMMAND_OUT) {
+      joy_out(value);
+      led_on ^= 1;
+      if(led_on) {
+        led_transmit_on();
+      } else {
+        led_transmit_off();
+      }
+    }
+    // wait command
+    else if(command==JOY_COMMAND_WAIT) {
+      delay = value;
+      timer_10ms = 0;
+      while(timer_10ms<delay) {
+        // while waiting fetch the next command
+        if(need_cmd) {
+          if(uart_read_data_available()) {
+            if(uart_read(&command)) {
+              need_cmd = 0;
+            }
+          }
+        }
+      }
+      // no command arrived while waiting -> error
+      if(need_cmd) {
+        result = JOY_COMMAND_ERROR;
+        break;
+      }
+    }
+  }
+
+  joy_out(0);
+  joy_end();
+
+  uart_send(result);
+  uart_stop_reception();
+
+  led_transmit_off();
+
+  if(result!=JOY_COMMAND_OK)
+    error_condition();
+}
+
+#endif

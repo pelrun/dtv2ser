@@ -1,0 +1,153 @@
+dtv2usb Manual
+--------------
+
+v0.2 26.11.07 chris
+
+1. Introduction
+
+This manual summarizes the usage of the dtv2usb board described in the
+dtv2usb.sch and dtv2usb.brd Eagle (from www.cadsoft.de) files.
+
+
+2. Hardware Setup
+
+2.1 Overview
+
+On the board there are two pin heads labeled JP1 and JP2.
+
+JP1 is used to connect an AVR ISP to initially flash the bootloader or the
+firmware of the ATmega8. Later the JP1 pins can be used to connect an external
+(optional) reset button and place a jumper to enter the bootloader mode:
+
+      ^^^ DB9 Connector ^^^
+
+      JP1   1o o
+             o o
+             x x   <-- Reset button connector
+             o o
+             *-*   <-- Bootloader Jumper (place and reset to enter bootloader)
+             
+JP2 is used to select the power source of the dtv2usb board:
+
+      ^^^ DB9 Connector ^^^
+
+      JP2    o o o
+      
+             *-* o  <-- Power via USB (normal operation)
+             o *-*  <-- Power via ISP connector (only used for ISP flash)
+
+There are five LEDs on the board:
+
+      ^^^ DB9 Connector ^^^
+      
+                      LED3 *    Error (red)
+                      LED2 *    Transmit/Bootloader (yellow)
+                      LED1 *    Ready (green)
+                      
+                      
+      * LED4  RS232 Tx (yellow)
+      * LED5  RS232 Rx (green)
+
+
+2.2 Initial Flash Operation
+
+On a fresh dtv2board, the ATmega8 needs a bootloader flashed via the ISP
+connector. You need an ISP programmer (e.g. the USBasp 
+http://www.fischl.de/usbasp/) for this:
+
+  - disconnect the dtv2usb
+  - place JP2 to ISP power (see 2.1)
+  - attach the ISP with a 10 pin cable to JP1 (pin 1 at top left of JP1)
+  - attach the ISP via USB to your PC
+  - enter "server" directory of this distribution within a shell and call:
+
+      > make prog_bootloader
+
+  - use AVRDUDE_ISP_PROGRAMMER and AVRDUDE_ISP_PORT to select your programmer:
+
+      > make prog_bootloader AVRDUDE_ISP_PROGRAMMER=usbasp AVRDUDE_ISP_PORT=
+
+Now the ATmega8 needs the correct fuse bits set:
+
+      > make prog_fuse
+
+  - again you can use AVRDUDE_ISP_PROGRAMMER and AVRDUDE_ISP_PORT to config
+    your ISP.
+
+Disconnect your ISP now and set the power connector JP2 back to normal
+operation (see 2.1)
+
+
+2.3 Bootloader Mode
+
+You need to enter Bootloader Mode to flash a new firmware version directly via
+the USB port without any external ISP.
+
+  ** enter bootloader mode:
+
+  - disconnect dtv2usb from the PC and the DTV
+  - place the bootloader jumper on JP1 (see 2.1)
+  - make sure JP2 is set to USB power
+  - attach the dtv2usb only to your PC
+  
+  - the orange LED2 is now lit and signals that the bootloader mode is active
+  
+  ** flash the firmware
+  
+  - enter the "server" directory of this distribution and call:
+  
+    make prog_dist FILE=flash/dtv2ser-<version>-230400-cvm8board-atmega8.hex \
+                   AVRDUDE_BOOTLOADER_PORT="-P /dev/cu.usbserial-*"
+    
+    set the bootloader port to the correct virtual serial port that was
+    assigned to the dtv2ser. This varies on every system. Use your favorite
+    USB inspector tool to find this out.
+    
+  - now the firmware is flashed
+  
+  ** leave bootloader mode:
+  
+  - disconnect dtv2usb from the PC
+  - remove the bootloader jumper on JP1 (see 2.1)
+  - attach the dtv2usb to your PC
+  
+  - the green LED1 is now lit and signals that the dtv2ser firmware operates
+    normally and bootloader mode was left successfully
+
+
+2.4 Normal Operation
+
+  - make sure the bootloader jumper on JP1 is removed (see 2.1)
+  - make sure the power jumper JP2 is set to normal operation (see 2.1)
+  
+  ** attach the dtv2usb
+  
+  - power off the DTV
+  - attach the dtv2usb to the DTV's joystick port (usually port 2)
+  - attach the dtv2usb via USB (and an optional USB extension cord) to your host
+  - the green LED1 of the dtv2usb is now lit
+  - power on the DTV
+  
+  ** detach the dtv2usb
+
+  - remove the dtv2usb from the USB port of the PC
+  - power off the DTV
+  - remove the dtv2usb from the DTV's joystick port
+
+
+2.5 Hardware Test
+
+  - set up normal operation (see 2.4)
+  - enter the "client" directory of this distribution
+  - call:
+  
+      ./dtv2sertrans -p /dev/cu.usbserial-* -s 230400 reset + diag testsuite
+      
+    Make sure to set the correct serial port with -p and the correct
+    serial speed (-s) you flashed in the firmware!
+
+    This command sequence will reset the DTV and enters dtvtrans mode
+    automatically (assuming you have DTVmon >= 1.1 installed).
+    Then it performs a series of internal and external transfer tests.
+    
+THE END

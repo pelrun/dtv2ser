@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+#
+# dtv2sertrans - host tool for dtv2ser device
+#
+# Written by
+#  Christian Vogelgsang <chris@vogelgsang.org>
+#
+# This file is part of dtv2ser.
+# See README for copyright notice.
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+#  02111-1307  USA.
+#
+
+import sys
+from dtv2sertool.cmd import CmdError
+from dtv2sertool.cmdset import CmdSet
+from dtv2sertool.app import app, global_options, set_global_option
+
+import dtv2sertool.cmd_transfer
+import dtv2sertool.cmd_diag
+import dtv2sertool.cmd_dtvtrans
+import dtv2sertool.cmd_param
+import dtv2sertool.cmd_joy
+import dtv2sertool.cmd_boot
+import dtv2sertool.cmd_flash
+import dtv2sertool.cmd_server
+
+# ----- define command set -----
+
+cmdSet = CmdSet(sys.argv[0],
+                global_args=global_options,
+                global_func=set_global_option)
+
+dtv2sertool.cmd_transfer.init(cmdSet)
+dtv2sertool.cmd_diag.init(cmdSet)
+dtv2sertool.cmd_dtvtrans.init(cmdSet)
+dtv2sertool.cmd_param.init(cmdSet)
+dtv2sertool.cmd_joy.init(cmdSet)
+dtv2sertool.cmd_boot.init(cmdSet)
+dtv2sertool.cmd_flash.init(cmdSet)
+dtv2sertool.cmd_server.init(cmdSet)
+
+# ----- execute command line -----
+try:
+  # handle global options of command line
+  args = cmdSet.handle_global_options(sys.argv[1:])
+  if args == None:
+    sys.exit(0)
+
+  # try to init app
+  if not app.post_init():
+    sys.exit(1)
+
+  # handle commands on command line
+  num_cmds = cmdSet.handle_command_line(args)
+  if num_cmds == 0:
+    app.check_server()
+
+except CmdError,e:
+  print "FAILED:",repr(e)
+  sys.exit(1)

@@ -1,0 +1,88 @@
+dtv2ser-setup.txt
+
+Hardware Setup
+--------------
+
+ 1.) build the dtv2ser or the dtv2usb hardware 
+     (see hardware/dtv2usb-manual.txt if you own a dtv2ser+usb device)
+
+ 2a.) connect your device to the PC and
+      flash the bootloader onto the ATmega8 with an ISP:
+ 
+       > cd server
+       > make prog_bootloader
+ 
+ 2b.) flash the correct fuse bits on a new device:
+ 
+       > make prog_fuse
+       
+ 2c.) set the bootloader jumper on the device and power it.
+      now the yellow transfer LED should be lit.
+       
+ 2d.) flash the server firmware onto the ATmega8 via the bootloader
+
+       > cd server
+       > make help
+       > make prog_dist FILE=flash/dtv2ser-0.1-115200-cvm8board-atmega8.hex
+
+     make sure to choose the correct baud rate for later operation (here 115.2 kbps)!
+     repeat steps 2c.) and 2d.) to update your firmware.
+
+ 2e.) detach device and unset the bootloader jumper
+     
+ 3.) modify your DTV to supply power and reset on your DB9 joystick connector:
+ 
+      PIN 1    D0
+      PIN 2    D1
+      PIN 3    D2
+      PIN 4    CLK
+      PIN 5    N/C
+      PIN 6    ACK
+      PIN 7    +5V    <-------- add this (only for 0.1 MAX based HW)
+      PIN 8    GND
+      PIN 9    DTV Reset <----- and this
+
+ 4.) attach the dtv2ser via the DB9 joystick connector to the DTV and power on.
+     if the green LED goes on then it looks good!
+ 
+ 5.) attach your client Mac/PC via RS232 to the dtv2ser device or
+     attach the dtv2usb directly via USB.
+     launch your favorite terminal application (e.g. Z-Term or Hyperterm)
+     
+     set the connection values to: 115200 baud, 8 data bit, 1 stop bit,
+     parity none and RTS/CTS hardware hand shaking.
+     
+     enter a 'v' and press return
+     
+     the dtv2ser/usb should answer with a version string
+     
+     close the terminal application
+     
+Software Setup
+--------------
+     
+ 1.) install Python on your system (http://www.python.org) and the
+     PySerial module (http://pyserial.sourceforge.net/)
+
+ 2.) enter the 'client' directory and call './dtv2sertrans' (Mac/Linux)
+     or 'python dtv2sertrans' (Windows)
+ 
+     dtv2sertrans will connect to the dtv2ser server and return its firmware
+     version.
+ 
+     if the connection to the dtv2ser server fails then set the environment
+     variables:
+     
+       DTV2SER_PORT          serial port device (e.g. /dev/ttyUSB0 on Linux)
+       DTV2SER_SPEED         your baud rate (e.g. 115200)
+ 
+     or use the -p and -s switches of dtv2sertrans.
+
+ 3.) run the testsuite:
+ 
+     > dtv2sertrans diag testsuite
+     
+     this will perform a number of test transfers and tests all functionality
+     of the dtv2ser device.
+     
+     if the device passes all tests then you are ready to go!

@@ -1,0 +1,214 @@
+dtv2sertrans flash commands
+===========================
+
+1. Introduction
+---------------
+
+With the flash sub commands of dtv2sertrans you can query the type of your
+DTV's flash ROM, see a map of flash usage, dump the contents of the flash,
+sync the flash contents with a ROM image file, program a file into the flash
+or erase a range on the flash ROM.
+
+First of all a WARNING: Altering the flash ROM of your DTV may break your
+device!!! Although some precautions have been taken in dtv2sertrans do not
+completely destroy your device with a simple command call, it is still
+possible by specifying the wrong options with wrong parameters to break
+everything up! So you have been warned and you are on your own now. Don't
+blame me for your bricked DTV!!!
+
+If you still read on: By default no flash command in dtv2sertrans does any
+alteration to the flash. You can play safely with all commands and see what
+they might do. Programming and erasing is replaced with a fake/dummy operation
+that does not write to the ROM. Only if you specify the -f switch then the
+real action takes place and the ROM is altered.
+
+All flash routines are performed by small code fragments (called servlets)
+running directly on the DTV. The code for the flashing core is taken from
+Daniel Kahlin/TLR's great flash 1.0 tool:
+
+ see http://www.kahlin.net/daniel/dtv/ for flash-1.0.zip
+ 
+
+2. Setup
+--------
+
+Before flashing you will need some preparation:
+
+ * Make sure dtv2sertrans runs as expected with your DTV.
+   Do a diagnose testsuite:
+   
+   > dtv2sertrans diagnose testsuite
+   
+ * Make sure you have a RAM version of dtvtrans running on your DTV
+   Check with and load if required:
+   
+   > dtv2sertrans server ram
+   
+ * The flash servlet requires a stable sys-call interface in dtvtrans.
+   Check with the diag sys test if the sys calls perform without problems:
+   
+   > dtv2sertrans diag sys
+   
+   If all calls succeed then you are ready for the next step! If the sys call 
+   test fails then make sure you have a sys-call fixed version of dtvtrans
+   running.
+   
+ * Now check if the flash type of your DTV is recognized:
+ 
+   > dtv2sertrans flash id
+   
+   If UNKNOWN or an error is returned then your flash type is not supported :(
+   Otherwise the flash type specifier is displayed and you are ready for
+   flashing!
+   
+   If one of the above steps fails then the following flash operations
+   might/will not work! :(
+
+
+3. Working with the flash ROM file system
+-----------------------------------------
+
+The main reason for flashing the ROM is to alter the contents of the flash
+file system found there. In this section the typical steps and dtv2sertrans
+commands that are required for file system work are explained:
+
+ * First dump the contents of the current flash to a ROM image file:
+ 
+   > dtv2sertrans flash dump rom-orig.bin
+   
+   Keep this file in a safe place as this is the original contents of your
+   DTV's ROM! If something goes wrong later on then you can sync this file
+   back to your DTV.
+   
+ * Now create a new flash image file: new-rom.bin
+   You can copy the dumped file to a new file and alter it.
+   You can use e.g. DTVFSEdit, a java+UI based front end to edit
+   the flash image:
+   
+   http://picobay.com/dtv_wiki/index.php?title=DTVFSEdit
+   
+ * At this point it is useful to test the new image with an emulator.
+   Use VICEplus or (new) VICE x64dtv emulator to test the image.
+
+     http://www.viceteam.org/                VICE
+     http://viceplus.wiki.sourceforge.net/   VICEplus
+     
+   Launch the emulator with:
+   
+     x64dtv -c64dtvromimage new-rom.bin
+   
+ * Let's see what has changed in your new image file compared to the ROM:
+   
+   > dtv2sertrans flash compare new-rom.bin
+
+   The hashes '#' mark regions that differ and need to be flashed.
+   The dots '.' mark unaltered regions that need no flashing.
+   
+ * We are ready for flash now. The sync commands now performs the changes
+   required in the flash:
+   
+   > dtv2sertrans flash sync new-rom.bin
+   
+   Ok, its doing a fake operation now :) So nothing has happened right now.
+   The real operation only takes place by adding the -f switch:
+   
+   > dtv2sertrans flash sync -f new-rom.bin
+   
+   After this operation the ROM now contains the contents of the image file.
+   You can verify this by calling compare again:
+   
+   > dtv2sertrans flash compare new-rom.bin
+   
+   Some Notes:
+   
+   + The sync operation normally omits the first sector (0x00000-0x010000)
+     There the crucial parts of the flash including kernal, basic and chargen
+     ROM are stored. This area is essential for a bootable DTV device!
+     This area is NEVER touched by default.
+     If you really want to sync this region then add the -w switch. This
+     disables the write protection of this area. You really need to know
+     what you are doing then!!!
+     
+   + If you use dtvmon (http://www.kahlin.net/daniel/dtv/dtvmon.php) or an
+     alternate kernel then the high ROM area (0x1f8000-0x200000) is occupied.
+     By adding the -p switch you can enable a write-protection in this range.
+     Then the sync command won't touch the area and does not write there.
+
+
+4. Two-step setup of a mini-modded DTV
+--------------------------------------
+
+With dtv2sertrans' flash and bootstrap commands the setup of a mini-modded
+(i.e. only a joy port 2 connector is attached) DTV is a very simple two-step
+operation. (I assume here that a rom image with the desired programs/games
+is already available)
+
+ * Step 1: bootstrap DTV
+   
+   > dtv2sertrans bootstrap full
+   
+   This boots an unmodified DTV into a RAM version of dtvtrans
+   
+ * Step 2: sync new flash image
+ 
+   > dtv2sertrans flash sync new-rom.bin
+   
+   This writes the new image file contents to the flash ROM
+   
+ * Ready!
+
+
+5. Check, erase and flash ranges (Advanced Users only!)
+-------------------------------------------------------
+
+For advanced users dtv2sertrans also provides flash commands to directly
+program or erase address ranges in the flash ROM.
+
+Use these commands with caution! You really need to know exactly what you
+are doing here!
+
+Similar to the sync command a low-mem write protection is enabled by default.
+Use -w to disable this. Furthermore, you can also enable a high-mem protection
+by adding the -p switch.
+
+Typical operations are:
+
+ * Let's see what ranges are occupied on the flash:
+ 
+   > dtv2sertrans flash map
+
+ * Ok, let's check if my requested range is empty:
+ 
+   > dtv2sertrans flash check 0x1fc000-0x200000
+   
+ * Hmm, it's not empty. So let's erase it:
+ 
+   > dtv2sertrans flash erase 0x1fc000-0x200000
+   
+   This was a dry run! Now for real:
+   
+   > dtv2sertrans flash erase -f 0x1fc000-0x200000
+   
+   Now the range is finally empty:
+   
+   > dtv2sertrans flash check 0x1fc000-0x200000
+   
+ * Let's program a new alternate kernel into this range:
+   (E.g. Peiselulli's DTV Kernal 0.4 http://noname.c64.org/csdb/release/?id=50362)
+ 
+   > dtv2sertrans flash program 0x1fc000 Kernal.flash
+   
+   Ok, dry run again. Here is the real op:
+   
+   > dtv2sertrans flash program -f 0x1fc000 Kernal.flash
+   
+ * Finally see if the contents is correct by verifying the range:
+ 
+   > dtv2sertrans flash verify 0x1fc000 Kernal.flash
+   
+
+That's it!
+Have fun flashing but do no bricking ;)
+-chris/lallafa
+
+   

@@ -1,0 +1,286 @@
+dtv2ser-examples.txt
+
+this file gives examples how to call the dtv2sertrans command tool
+
+call ./dtv2sertrans -h to get an overview of all commands.
+call ./dtv2sertrans <command> -h to get help on the command's options
+
+
+1. control DTV
+--------------
+
+> dtv2sertrans reset
+
+   reset the DTV (and enters dtvtrans in dtvmon >= 1.1)
+   then the Kernal and the Basic is initialized
+   
+   add -n to omit the initialization
+   with -B -b -K and -k you can control what should be initialized
+   
+> dtv2sertrans reset -d
+
+   reset the DTV and do not enter dtvtrans but enter dtvboot menu if available.
+   no Kernal or Basic is initialized
+   
+> dtv2sertrans reset -N
+
+   reset the DTV and bypass dtvtrans and dtvboot.
+   runs INTRO prg.
+
+
+2. data transfer
+----------------
+
+> dtv2sertrans write test.prg
+
+   write a program file to DTV's RAM
+
+> dtv2sertrans write 0x400 dump.prg
+
+   write a program file at address 0x400 to DTV's RAM
+
+> dtv2sertrans read test.prg
+
+   save current basic program from DTV's RAM to a file
+
+> dtv2sertrans read 0x400,0x200 dump.bin
+
+   read 0x200 bytes starting at 0x400 from DTV's RAM to a file
+
+> dtv2sertrans read 0x400-0x800 dump.bin
+
+   read from 0x400 to 0x800 from DTV's RAM to a file
+
+> dtv2sertrans read r0x10000-0x14000 rom.bin
+
+   read from DTV's ROM to a file
+
+> dtv2sertrans verify dump.prg
+
+   read from DTV's RAM and verify with file contents
+
+> dtv2sertrans verify 0x400 test.prg
+
+   read from DTV's RAM at 0x400 and compare with file contents
+
+Note: If a file has a *.prg extension then the first two bytes are assumed
+to be the load address. If the extension is *.bin, *.img, *.txt or *.raw
+then raw data is assumed. For all other types of extensions you have to
+specify the type with the -l or -r switch.
+
+
+3. basic commands (new in 0.4)
+------------------------------
+
+> dtv2sertrans load test.prg
+
+  transfer the file test.prg to the DTV and simulate a basic LOAD command
+  
+  add -N to skip simulation of a BASIC LOAD 
+    (similar to 'write' command)
+  add -n to skip relinking
+  
+> dtv2sertrans save test.prg
+
+  save the program on the DTV by transferring it back
+    (similar to 'read' command)
+
+> dtv2sertrans run
+
+  issue a RUN command on the DTV
+
+> dtv2sertrans exit
+
+  do EXIT command and leave dtvtrans server to BASIC
+  
+  add -n to exit only without clear
+  
+> dtv2sertrans init
+
+  perform a Kernal or BASIC initialization
+
+  add -B -b -K or -k to control what to init
+
+
+4. parameter commands
+---------------------
+
+> dtv2sertrans param dump
+
+    show all parameters and their current values
+
+> dtv2sertrans param set_byte 0 7
+
+    set byte parameter #00 to value 7
+
+> dtv2sertrans param set_word 4 0xf000
+
+    set word parameter #04 to value 0xf000
+
+> dtv2sertrans param save
+
+    save all parameters to EEPROM on dtv2ser device
+
+> dtv2sertrans param load
+
+    load all parameters from EEPROM on dtv2ser device
+
+> dtv2sertrans param reset
+
+    reset all parameters to their default value
+
+
+5. diagnose commands
+--------------------
+
+> dtv2sertrans diagnose testsuite
+
+    run a set of tests
+
+> dtv2sertrans diagnose read_only_client 0x10000
+
+    download 0x10000 bytes from the server device and measure max.
+    serial download rate
+
+> dtv2sertrans diagnose write_only_client 0x10000
+
+    upload 0x10000 bytes to the server device and measure max.
+    serial upload rate
+
+> dtv2sertrans diagnose read_only_dtv 0x10000,0x10000
+
+    read 0x10000 bytes from DTV's RAM at 0x10000 but do not transfer them
+    via serial. this measures the dtvtrans download rate.
+
+> dtv2sertrans diagnose write_only_dtv 0x10000,0x10000
+
+    write 0x10000 pattern bytes to DTV's RAM at 0x10000 but do not transfer
+    them via serial. this measures the dtvtrans upload rate.
+
+> dtv2sertrans diagnose verify_only_dtv 0x10000,0x10000
+
+    read 0x10000 bytes from DTV's RAM at 0x10000 and check that all of them
+    have the pattern byte value. use this to verify that write_only_dtv
+    did succeed.
+
+> dtv2sertrans diagnose sys 100  (new in 0.4)
+
+    run the sys call test. download a small test program to the DTV and
+    test if it can be executed.
+    repeat the call 100 times with different duration paremeters to see
+    if the 
+
+
+6. command queueing and sleep
+-----------------------------
+
+queue commands on a command line by separating them with a '+' sign
+
+> dtv2sertrans reset + write test.prg + go 2071
+
+   first reset DTV, then write test.prg and finally jump to address 2071
+
+> dtv2sertrans sleep 2
+
+   sleep two seconds. useful when queueing commands:
+
+> dtv2sertrans reset + write dtvtrans_joy1.prg  + go 2069 + sleep 2 + reset + go 700
+
+   load the dtvtrans program, run it, wait a bit, reset and launch it
+
+
+7. joy stream and autotype (new in 0.3)
+---------------------------------------
+
+> dtv2sertrans joy stream -i "4l5uf"
+
+   move joystick 4 times left, 5 times up and press fire
+
+> dtv2sertrans bootstrap basic
+
+   enter command prompt with virtual keyboard
+    
+> dtv2sertrans joy type -i "HELLO, WORLD!"
+
+   type a string immediately
+   
+   see 'dtv2ser-joystick.txt' for more details!
+  
+
+8. bootstrap DTV into dtvtrans (new in 0.3)
+-------------------------------------------
+
+> dtv2sertrans boot mlboot_joy1.prg
+
+   transfer initial bootloader (here from TLR's dtvtrans distribution)
+   needs running boot.prg on the DTV as the boot command uses a slightly
+   different protocol. 
+   (new in 0.2)
+
+> dtv2sertrans -i bootstrap full
+
+   You need to attach the dtv2ser in Joyport 2!
+
+   dtv2sertrans first resets the device and then waits for the picture show
+   at cold start. After 20 seconds it starts wiggling the joystick for 20
+   secs to change from LOAD"*" into LOAD"$". After that move the joystick
+   up eight times and press fire to select the "BASIC PROMPT". Wait until
+   the prompt is enabled then autotype the boot.txt basic program. The
+   bootloader waits and gets the second stage mlboot_joy2_auto.prg loaded
+   and started. This stages receives the final dtvtrans and runs it...
+
+   Make sure the required boot files are in the current directory. They
+   are available in TLR's dtvtrans 1.0 distribution:
+
+    boot.txt mlboot_joy2.prg dtvtrans_joy2.prg
+    
+   see 'dtv2ser-joystick.txt' section 3 for more details!
+
+> dtv2sertrans -i bootstrap -s full
+
+   New experimental faster screen code based bootstrap mode
+
+
+9. flash commands (new in 0.4)
+------------------------------
+
+> dtv2sertrans flash id
+
+  determine the type of flash ROM you have installed in your DTV
+
+> dtv2sertrans flash map
+
+  display a graphical map of the ROM usage. Mark empty regions.
+
+> dtv2sertrans flash dump myrom.img
+
+  dump the contents of the whole flash ROM into a file
+  
+> dtv2sertrans flash sync newrom.img
+
+  transfer and write new contents into the flash ROM.
+  only write the regions where the image file and the real ROM differ.
+  this operation does only SIMULATE the operation and performs no flashing!
+  
+  by adding the -f switch this operation does the REAL THING and flashes!!!
+  so you have been warned!!!
+
+  see 'dtv2ser-flash.txt' for more details!
+
+
+10. server commands (new in 0.4)
+--------------------------------
+
+> dtv2sertrans server ping
+
+   check if the DTV has a running dtvtrans server available
+
+> dtv2sertrans server info
+
+   return information on the running dtvtrans server
+
+> dtv2sertrans server ram
+
+   make sure a dtvtrans server is running in RAM.
+   if none is available then download dtvtrans prg and run it.
+

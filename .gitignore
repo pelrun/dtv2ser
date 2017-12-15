@@ -1,0 +1,4 @@
+*.lst
+*.elf
+*.hex
+*.pyc

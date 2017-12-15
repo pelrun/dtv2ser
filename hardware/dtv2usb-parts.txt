@@ -1,0 +1,47 @@
+Partlist for dtv2usb board
+--------------------------
+
+v0.2 26.11.07 chris
+
+Part     Value                    Reichelt.de Parts
+
+C1       22p                      NPO-G0805 22P
+C2       22p                      NPO-G0805 22P
+C3       100n                     X7R-G0805 100N
+C4       10n                      X7R-G0805 10N
+C5       100n                     X7R-G0805 100N
+C6       4.7u                     SMD TAN.4,7/25
+C7       100n                     X7R-G0805 100N
+
+IC1      FT232RL                  FT 232 RL
+IC2      MEGA8-AI                 ATMEGA 8-16 TQ
+
+JP1                               SL 1X36G 2,54
+JP2                                " + 2x JUMPER 2,54 SW
+
+L1       0.1u                     JCI 2012 0,1µ
+
+LED1     green                    SMD-LED 0805 GN
+LED2     yellow                   SMD-LED 0805 GE
+LED3     red                      SMD-LED 0805 RT
+LED4     green                    SMD-LED 0805 GN
+LED5     yellow                   SMD-LED 0805 GE
+
+Q1       7.3728MHz/
+         14.7456MHz               14,7456-HC49-SMD
+
+R1       220                      SMD-0805 220
+R2       220                      SMD-0805 220
+R3       220                      SMD-0805 220
+R4       220                      SMD-0805 220
+R5       220                      SMD-0805 220
+R6       10k                      SMD-0805 10,0K
+R7       10k                      SMD-0805 10,0K
+
+X1       USB Type A male          USB AWF
+X2       D-SUB 9 female           D-SUB BU 09
+
+Remark: Mount the USB plug (X1) on the bottom side of the board!
+        If you use a less common USB Type A female connector then you
+        mount it on the top side.
+

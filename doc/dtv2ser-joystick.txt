@@ -1,0 +1,372 @@
+dtv2ser's JoyStream, AutoType, and Bootstrapping
+------------------------------------------------
+
+Besides using the joystick port for dtvtrans data transfer, dtv2ser (>= 0.3)
+can also control the joystick port to simulate a real joystick.
+
+1. The JoyStream
+
+Joystick control can be described as a sequence of binary level changes on one
+or more of the joystick control lines. The most important signal type is the
+pulse, i.e. a level is set for a specific time interval and then released
+again.
+
+dtv2ser uses a stream of binary data called a JoyStream to describe the
+control signals that are emitted to the joystick port of the DTV.
+
+A JoyStream contains joy port commands, delay commands and at the end an
+exit command. A joy port command is a byte value directly written to the
+joystick port. A delay command holds the last port command for the given
+interval.
+
+It is required that the next byte of the JoyStream arrives before the delay
+ends. If not then an error occurs and the stream is aborted. This approach
+ensures an exactly timed sequence of pulses that is required for precise
+joystick control.
+
+1.1 Raw JoyStream Commands
+
+After entering a 'j' command on the dt2ser device command line the device
+interprets all received bytes as a JoyStream. A JoyStream consisting of raw
+bytes that will be received and executed until the end JoyStream token is
+received.
+
+In a raw JoyStream each bytes defines a single command. In each byte the upper
+two bits are used to encode the command. The lower bits are used to encode
+an (optional) parameter value:
+
+    #define JOY_COMMAND_MASK    0xe0
+    
+    command = js_byte &  JOY_COMMAND_MASK
+    value   = js_byte & ~JOY_COMMAND_MASK
+    
+The following commands are currently defined:
+
+  #define JOY_COMMAND_EXIT    0x80
+  #define JOY_COMMAND_WAIT    0x20
+  #define JOY_COMMAND_OUT     0x00
+  
+The exit command is the last command in a JoyStream and leaves the JoyStream
+execution. The dtv2ser device then returns to command line input.
+
+The out command is used to set the levels of the joystick port. The passed
+value is inverted (i.e. signals are low active on the port) and immediately
+set on the DB 9 output connector.
+
+  #define JOY_MASK        0x1f
+
+  #define JOY_MASK_UP     0x01
+  #define JOY_MASK_DOWN   0x02
+  #define JOY_MASK_LEFT   0x04
+  #define JOY_MASK_RIGHT  0x08
+  #define JOY_MASK_FIRE   0x10
+
+The wait command delays the execution for <value> * 10ms and holds the signals
+as set by the last out command. 
+
+A combination of out and wait commands lets you describe any kind of pulse
+sequence.
+
+An example JoyStream might look like:
+
+  0x10       <- out: set fire button
+  0x25       <- wait: 5 * 10ms
+  0x00       <- out: release fire button
+  0x25       <- wait: 5 * 10ms
+  0x12       <- out: down + fire
+  0x27       <- wait: 7 * 10ms
+  0x00       <- out: release all
+  0x80       <- end of stream
+
+Make sure to send the JoyStream fast enough, i.e. the next out command must
+be received during the last wait command. This is required to ensure an
+exact pulse timing.
+
+1.2 JoyStream String Commands
+
+You can use a string notation to describe a JoyStream in the dtv2sertrans
+command line tool.
+
+The string contains a number of letters that symbolize joystick values, e.g.
+l=left, r=right, u=up, d=down, f=fire. The letters already emit a pulse, i.e.
+a JoyStream with 4 commands: out value, wait, out zero, wait. A release delay
+is added automatically with the same duration.
+
+  lrudf    <- generates left, right, up, down and fire pulses
+                            ____
+  l        <- generates a       |____  left pulse
+  
+Call dtv2sertrans with (-i for immediate: next argument is not a file to read
+the stream from but a JoyStream string):
+
+  dtv2sertrans joy stream -i lrudf
+  
+If you prepend a number before a letter then the following command is repeated:
+
+  8l5r    <- move 8 times left and 5 times right
+
+You can adjust the pulse delay either by giving a global value to the
+dtv2sertrans command or by using the : command (note: the unit of the delay is
+given in 10th of ms)
+
+  dtv2sertrans joy stream -j 10 -i lrudf  <- use a global pulse length of 100ms
+  
+  8l10:5r  <- 8 left with 150ms (default) and 5 right with 50ms
+  
+There are special characters supported in a JoyStream string:
+
+ *               wait <val> seconds (delay is done on client)
+ +               wait <val> micro seconds (delay is done on client)
+ .               wait a pulse delay (e.g. 15ms) (delay is done in stream)
+ 
+ 8l...5r  8l3.5r <- both commands move 8 left, wait for 3*15ms and 5 right
+ l2*r            <- left and after 2 seconds right
+ l2+r            <- left and after 2 milliseconds right
+
+ [ ... ]         <- press fire and hold it during all commands in between
+
+ [2lu]           <- press fire and hold it, move 2 times left and up, 
+                    release fire
+
+1.3 Joy Wiggle
+
+Wiggling the joystick left and right is required to enter the "$" mode
+during boot of a DTV.
+
+dtv2sertrans can generate a JoyStream with wiggling commands for a given
+duration:
+
+  dtv2sertrans joy wiggle 5  <- wiggle joystick left and right for 5 secs
+
+
+2. AutoType
+
+By wiggling the joystick left and right during the LOAD "*" sequence in
+start up, the basic command prompt can be entered on a DTV device.
+
+Because an unmodified DTV does not have a keyboard available, a virtual
+keyboard on screen is controlled with the joystick to enter keys.
+
+The keyboard appears by pressing the fire button and while holding the button
+you can move to the key you wish to enter and release fire again. The next
+time the keyboard cursor will appear at the same letter. So you must always
+known which key was entered last to make the correct movement to a new key.
+
+dtv2ser can use its joystick control capabilities to enter a sequence of
+characters on this virtual keyboard.
+
+The actions required to enter a key sequence are encoded into a JoyStream
+and is then executed on the dtv2ser device.
+
+Each individual key is transformed into a 'delta move' that describes the
+movement that has to be performed to reach the desired key from the current
+position on the virtual keyboard.
+
+Each delta move is then transformed into a JoyStream that presses the fire
+button to show the keyboard, then pulses the delta moves to reach the key and
+releases the button again.
+
+If the given key needs a state change, e.g. a Shift or CBM key pressed then
+the state key button is first typed on the keyboard and then the actual key is
+entered.
+
+The automatic transformation of a character sequence into a JoyStream is
+called AutoType.
+
+2.1 AutoType Strings
+
+You can either directly type a string or specify a file and all characters
+found there are typed automatically:
+
+  dtv2sertrans joy type -i "HELLO, WORLD!"
+  dtv2sertrans joy type myfile.txt
+  
+The following characters in a file are recognized and entered directly:
+
+  A-Z,0-9
+  <Space>
+  ! " # $ % & \ ( ) * + , - . / [ ]
+  <Linefeed> <Return>
+
+Note that all alphabetic characters need to be upper case.
+
+Some lower case characters and other characters have a special meaning:
+
+  n          press <Return>
+  r l u d    press Cursor Key on Keyboard (slower than direct JoyStream moves!)
+  h          press <Home>
+  i          press <Arrow Up>        ^
+  j          press <Arrow Left>     <-
+  c          press <CTRL>
+  o          press <C=/CBM>
+  p          press <Pound Sign>
+
+  _          toggle <Shift> State (and ignore Shift+State of following chars)
+  ~          toggle <CBM> State
+  ^          shift only the next character: ^O  -> press shift+O: 
+
+2.2 AutoType Special Sequences
+
+Special sequences can be given in a AutoType string to either control the
+typing process or to embed a JoyStream string.
+
+Special sequences are always enclosed in curly braces: { ... }
+
+If a colon immediately follows the opening brace then a AutoType command
+is specified, otherwise a JoyStream is given:
+
+  dtv2sertrans joy type -i "HELLO{2d3l}WORLD!"
+  
+  <- type "HELLO", move cursor 2 down and 3 left, type "WORLD!"
+
+The following AutoType commands are available:
+
+  {:R}          Reset AutoType state (Initial Key is 'J' again)
+                and wait a second ('*' command).
+                This is useful after resetting the virtual keyboard program
+                e.g. with a SYS 2061
+              
+  {:t=<value>}  Set a new type delay for all following text
+  {:j=<value>}  Set a new JoyStream Delay for all following embedded JoyStreams.
+
+E.g.:
+
+  SYS2061n{:R}{:t=5}  <- do a sys that resets the keyboard and reset AutoType
+                         the following text uses a type delay of 50ms
+
+2.3 Setup Typing
+
+The virtual keyboard remembers the last key pressed and thus the delta moves
+for new keys have to be adjusted accordingly. If more type commands are given
+on the command line then dtv2sertrans remembers the last key and does the
+correct movement.
+
+If the virtual keyboard was used in a separate call of the dtv2sertrans
+command then the initial key on the keyboard is not 'J' anymore. Then a setup
+command can adjust this and give the current key:
+
+  dtv2sertrans joy type -k O -i "HELLO!"        <- O is the initial key
+
+Additionally, you can pass delay intervals for typing and JoyStream commands:
+
+  dtv2sertrans joy type -t 7 -t 10 -i "HELLO"   <- type delay: 70ms, JoyStream: 100ms
+
+2.4 Screen Code Typing
+
+Screen Code describes a technique where a short piece of machine language code
+is written to the screen RAM area of the VIC II at 0x0400. The code is visible
+as "random" characters on the top of the screen. It can be executed as a
+regular ml code with a SYS 1024 call from Basic.
+
+dtv2sertrans (>=0.3) has a Screen Code compiler that translates the assembly
+code of a given ml .prg file automatically into a AutoType sequence that can
+be typed in directly onto the screen via the virtual keyboard:
+
+  dtv2sertrans joy type -s test.prg
+  
+The given PRG file must have a loading/run address of 0x400.
+
+The generated AutoType code first emits a <HOME> key press to move the cursor
+to the top of the screen.
+
+Then the ml code is typed in line by line with one or more sweeps per line. In
+a line sweep only the characters having a given state (i.e. Shift, CBM and
+Reverse) are entered. All other characters are skipped by cursor movement.
+After wrapping around the cursor is moved up to the same line again and the
+missing characters with another state are added. The Screen Code compiler
+automatically determines which number of sweeps and state changes and it
+generates the shortest AutoType sequence.
+
+Finally, a SYS1024<RETURN> is typed to execute the code.
+
+Please note that the virtual keyboard is buggy: Pressing the @ Key does not
+generate the right character on screen. You have to enter this POKE first to
+fix the problem:
+
+  POKE 7220,46
+  SYS 2061
+  
+Thanks to Spiff for finding this out!!
+
+
+3. Bootstrapping
+
+Bootstrapping a DTV means to initially run the dtvtrans server PRG on a DTV
+whose flash ROM has not been altered, yet. You can then use dtv2sertrans to
+actually transfer memory, run programs...
+
+Bootstrapping a DTV with dtv2sertrans requires only a minimal hardware
+modification: you need to add a single DB9 connector for joystick port 2. All
+5 joystick lines, GND, and optional a DTV reset signal need to be connected.
+
+With this setup a bootstrap is done by a dtv2ser device as follows:
+
+ 1.) reset the DTV
+ 2.) wait for 20 seconds (to pass the copyright "slide show")
+ 3.) start wiggling the joystick for 20 seconds
+     -> enter "$",8
+ 4.) move joystick up to "COMMAND PROMPT" and press fire
+     -> enter normal basic prompt with virtual keyboard enabled
+ 5.) enter initial boot loader program basic.txt with AutoType
+     and run it
+ 6.) use dtvtrans boot command to transfer 2nd stage "mlboot.prg" and run it
+ 7.) use dtvtrans boot command to finally transfer dtvtrans.prg
+
+3.1 Boot Files
+
+The bootstrap requires external files that need to reside in the current
+directory for the bootstrap command to work properly.
+
+Some files are located in this distribution in the "bootstrap" directory.
+All other files need to be taken from TLR's dtvtrans 1.0 release
+(http://www.kahlin.net/daniel/dtv/).
+
+  boot.txt                   <- TLR's boot basic program
+  mlboot_joy2.prg            <- TLR's 2nd stage ml boot program
+  dtvtrans_joy2.prg          <- TLR's main dtvtrans server program
+
+  mlboot_0400_joy2.prg       <- TLR's ml boot program assembled for screen code
+                                (you need to assemble this file yourself from
+                                 mlboot.asm. see header of file for details.)
+  
+  fast.txt                   <- POKEs to enter fast AutoType mode
+  fast-sc.txt                <- POKEs to enter fast AutoType mode and to
+                                fix the virtual keyboard for Screen Code
+  init-sc.txt                <- No fast mode, only fix virtual keyboard
+  
+Special thanks must go to TLR for finding out the POKEs required to enter
+the fast mode!
+
+3.2 Boot Variants
+
+There are different variants to bootstrap a DTV:
+
+ - normal mode:   use the virtual keyboard unmodified to enter boot.txt
+ - fast mode:     use POKEs to speed up typing
+
+ - basic:         type in boot.txt, boot mlboot.prg and finally boot dtvtrans
+ - sceen code:    type in mlboo.prg with Screen Code and then boot dtvtrans
+ 
+You can decide which mode to use by passing a switch:
+
+  dtv2sertrans bootstrap full              <- default: fast basic
+               bootstrap -s full           <- fast screen code
+               bootstrap -f full           <- normal basic
+               bootstrap -s -f full        <- normal screen code
+               
+The different modes required different files for booting:
+
+ fast basic:         fast.txt boot.txt mlboot_joy2.prg      dtvtrans_joy2.prg
+ normal basic:                boot.txt mlboot_joy2.prg      dtvtrans_joy2.prg
+ fast screen code:   fast-sc.txt       mlboot_0400_joy2.prg dtvtrans_joy2.prg
+ normal screen code: init-sc.txt       mlboot_0400_joy2.prg dtvtrans_joy2.prg
+
+For testing purposes you can give a specific stage to boot into:
+
+  full:          full boot                  steps 1. - 7.
+
+  basic:         only enter basic prompt    steps 1. - 4.
+  boot:          only enter 1st boot stage  steps 5. + 6.
+  dtvtrans:      only boot dtvtrans         step  7.
+
+

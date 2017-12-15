@@ -1,0 +1,162 @@
+dtv2ser-arduino.txt
+-------------------
+
+Using an Arduino Board with the dtv2ser firmware
+
+1. Introduction
+---------------
+
+The original dtv2ser project uses a custom made board with an ATmega8 to
+provide the interface between a serial port and the DTV dtvtrans software. The
+layout and the schematics for the board are freely available but unfortunately
+most users have difficulties to create the HW from scratch.
+
+With the Arduino platform[1] an AVR ATmega platform was released to the public
+that is available very easily and rather cheap. This document describes how to
+transform an off-the shelve Arduino board into a dtv2ser device. The HW
+modifications required are very simple and this allows even unexperienced
+users to create their own device.
+
+[1] http://www.arduino.cc/
+
+
+2. HW Requirements
+------------------
+
+ * An "Arduino 2009" aka "Arduino Duemilanove" board
+ * 3 LEDs (red, green, blue)
+ * 3 220 Ohm Resistors
+ * A DB9 female connector (for the DTV joystick port)
+ * some wire
+
+The Arduino2009 has an ATmega168 with 16 MHz clock frequency on the board and
+provides a USB/Serial connector with a FT232 chip that has HW RTS/CTS
+handshaking support.
+
+You can use one of the many Arduino clones (Seeduino, ...) if they have
+similar HW parameters.
+
+Unfortunately, the new Arduino Uno is not supported yet, as it does not allow
+to enable HW RTS/CTS handshaking on the USB controller with the current
+firmware...
+
+The Arduino2009's USB to serial connector is used with 250kB/s as a transfer
+rate. Please make sure that your host operating system allows to set this
+non-standard speed. Its reported to work on Mac OS X and Windows with the FTDI
+drivers.
+
+
+3. HW Build Instructions
+------------------------
+
+ 3.1 Add CTS Line to the AVR
+ ---------------------------
+
+The vanilla Arduino board does not allow to control the HW CTS serial signal
+from the AVR chip. But this is required to allow high performance data
+transfer for the dtv2ser firmware. Fortunately, this signal of the FT232 chip
+is available on the solder pad X3 and can be added by soldering a wire from
+there to a pin that is connected to the AVR port labeled "DIGITAL 2".
+
+   Solder Pad X3                                          DIGITAL .
+    4   3   2   1                                                 .
+   (x) (x) (x) (x)                                                .
+                |                                                 * 3
+                +---------------------------------------------->  * 2
+                                                                  * 1 TX
+                                                                  * 0 RX
+ 3.2 Add the dtv2ser LEDs
+ ------------------------
+
+The dtv2ser uses three LEDs in green, orange and red to signal its internal
+status to the user. In this step we add those LEDs by simple connecting them
+with a resistor each to the DIGITAL pins 8, 9 and, 10. The positive side of
+each LED is connected to +5V that is available on the POWER connector.
+
+                       Red LED
+   Reset *         +------>|----| 220 |--------------* DIGITAL 10
+     3V3 *         |  Orange LED
+      5V *---------+------>|----| 220 |--------------* DIGITAL 9
+     GND *         |  Green LED
+     GND *--+      +------>|----| 220 |--------------* DIGITAL 8
+     Vin *  |
+            |
+            v  This line is used in section 3.3
+   
+ 3.3 Add the joystick connector
+ ------------------------------
+
+Finally, the Arduino needs to be connected to your DTV. As dtvtrans uses one
+of the joystick ports for communication it is quite common to use a DB9
+standard joystick connector for this.
+
+The 6 signal lines and GND need to be soldered to the DB9 (female) connector
+and on some pin headers to get connected to the Arduino on the connector
+labeled "ANALOG IN".
+
+  DB9 Connector               DB9          ANALOG IN 
+  (rear view)                  1 * ----------- * 0
+                               2 * ----------- * 1 
+  1 2 3 4 5                    3 * ----------- * 2
+  * * * * *                    4 * ----------- * 3
+   * * * *                     6 * ----------- * 4
+   6 7 8 9                     9 * ----------- * 5
+
+                              DB9          POWER CONNECTOR (see 3.2)
+                               8 * ----------- * GND
+ 
+  That's it! Now your arduino is a dtv2ser board ;)
+
+
+4. Flash the firmware
+---------------------
+
+I use the avrdude[1] command line tool to flash the firmware.
+But you can use any downloader SW that supports flashing the arduino.
+
+The firmware file is called "dtv2ser-x.y-250000-arduino2009-atmega168.hex"
+with x.y being the current version of dtv2ser. This file comes with this
+distribution.
+
+Connect your Arduino board to your Mac or PC and find out the serial port
+where it is connected (here on my Mac: /dev/cu.usbserial-A7006RWQ, on PCs
+something like COM5, on Linux /dev/ttyUSB0).
+
+The following command flashes the firmware:
+
+> cd server
+> make prog_arduino2009 LDR_PORT=<serial port>
+
+or without Makefile call:
+
+> avrdude avrdude -p m168 -c arduino -P <serial port> \
+   -b 19200 -U flash:w:dtv2ser-0.5-250000-arduino2009-atmega168.hex
+
+Note: this line is wrapped. Type everything into a single line!
+
+If everything worked fine then your newly attached Green LED goes on after a
+reset.
+
+[1] http://savannah.nongnu.org/projects/avrdude
+
+
+5. Using dtv2sertrans Host SW
+-----------------------------
+
+Starting from version 0.4 the dtv2sertrans SW directly supports the arduino
+board. See the manual for this tool for further details.
+
+Note the following:
+
+* The arduino uses a baud rate of 250kB/s and not 240kB/s as set as default.
+  So you have to specify the -s switch or set the DTV2SER_SPEED environment
+  variable:
+
+  > ./dtv2sertrans -s 250000 ...
+
+
+
+That's it! Have fun using dtv2ser...
+
+Chris,
+11.12.2010

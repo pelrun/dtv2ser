@@ -1,0 +1,582 @@
+dtv2ser Serial Protocol Description
+-----------------------------------
+
+written by Christian Vogelgsang <chris@vogelgsang.org>
+
+27.08.2007  initial revision
+09.09.2007  updated for 0.1 release
+07.08.2008  rewrote for 0.4 release
+
+1. Introduction
+---------------
+
+The client (a Mac or PC computer) is connected via a RS232 serial connection
+(optional with a Serial USB Adapter) to the dtv2ser server device. A
+high-speed connection (230.4 kbps or 115.2 kbps) with RTS/CTS hardware flow
+control is used for data transmission. It is crucial to have the correct baud
+rate and setup (8 data bits, parity none, one stop bit), otherwise the
+communication with the device will fail!
+
+1.1 The Command Line
+
+After power-up the dtv2ser listens for commands sent by the client. The server
+lights the green "ready" LED to show that it is in command mode. In this
+command line mode, a command can be sent by the client in a plain ASCII text
+line with a leading line feed. The server then responds with a parsing status
+that tells the client if the command syntax is valid and if it has the correct
+arguments. If this returned hex byte status code is ok (00) then the command
+will be executed next. Otherwise the server will abort and return to command
+mode and waits for the next input.
+
+PC -> dtv2ser          Command + Linefeed
+   <-                  Command Parse Status (00=ok)
+   <-                  If Parse Status ok then execute command and send response
+
+A command returns its result as hex values with leading linefeed directly to
+the client. At least one result value is always sent after a command.
+
+All communication in this command mode of dtv2ser is done in readable ASCII
+with all values represented as hex values with 2 chars per byte.
+
+The commands are short sequences of ASCII characters followed by none or some
+optional argument values that are all given as 2-, 4- or 6- digit hex numbers.
+The arguments may be separated by a number of spaces. Please note that the
+maximum number of characters per command line is limited (40 chars).
+
+1.2 Transfer Commands
+
+If the command issued on the command line is a data transfer command (e.g.
+read or write memory) then the device enters transfer mode after returning the
+command parse status. Then it waits for or sends the number of raw bytes
+specified in the command. After the number of bytes were transferred the
+dtv2ser server automatically leaves data transfer mode and returns to command
+mode.
+
+The data is transferred in a sequence of blocks that are enclosed in start and
+end block data sent by the DTV (see below for details on send and receive
+block loop). This data includes the size of the current block at the start and
+a crc 16 check sum and the server status at the end.
+
+After a data transmission the client can query the resulting state of the last
+transmission by issuing transfer query commands via in the command line.
+
+1.3 Error Handling
+
+Both sides use timeouts in RTS/CTS signaling to detect transmission problems.
+If data bytes are requested from the client then the server waits for RTS to
+become active. If a timeout occurs then the transmission is aborted and the
+server runs an error cycle. In this cycle all transmissions are blocked and
+this results in an abort on both sides of the connection. After an error the
+server returns to the command mode and waits for new instructions. During the
+error cycle the red "error" LED flashes and all data transmitted is lost.
+
+1.4 Summary: Mode of Operation
+
+ dtv2ser Startup -> enter command mode
+ 
+ dtv2ser Main Loop:
+ 
+   1.) wait for ASCII line from client. finished by linefeed
+   2.) analyze command line and send hex parse status to client
+   4.) if parse status failed (!=00) then goto 1.)
+   4.) parse status ok (00) -> execute command:
+       4a) data transfer command:
+           client sends data: wait until <length> bytes were received
+           client receives data: send <length> bytes
+           if transfer times out then run error cycle and goto 1.)
+       4b) non data transfer command:
+           return result hex values
+   5.) goto 1.)
+
+
+2. Commands
+-----------
+
+   Hex Value Format: (denoted as)
+
+     B = 2 hex digits for a byte value
+     W = 4 hex digits for a word value
+     T = 6 hex digits for a tri-byte value
+
+   LF = '\n' line feed
+
+   CSOK = command status is ok (00)
+   ERROR_CYCLE = error cycle that blocks all transfer for some ms
+                 and forces a time out on the client transfer side
+
+   Command Line Parsing Status Codes:
+   
+     #define CMDLINE_STATUS_OK                  0x00
+     #define CMDLINE_ERROR_LINE_TOO_LONG        0x01
+     #define CMDLINE_ERROR_UNKNOWN_COMMAND      0x02
+     #define CMDLINE_ERROR_NO_ARGS_ALLOWED      0x03
+     #define CMDLINE_ERROR_TOO_FEW_ARGS         0x04
+     #define CMDLINE_ERROR_ARG_TOO_SHORT        0x05
+     #define CMDLINE_ERROR_NO_HEX_ARG           0x06
+     #define CMDLINE_ERROR_TOO_MANY_ARGS        0x07
+
+   Transfer Status Codes (TSC):
+   
+     #define TRANSFER_OK                        0x00
+     #define TRANSFER_ERROR_DTVLOW_NOACK1       0x01
+     #define TRANSFER_ERROR_DTVLOW_NOACK2       0x02
+     #define TRANSFER_ERROR_DTVLOW_NOACK3       0x03
+     #define TRANSFER_ERROR_DTVLOW_NOACK4       0x04
+     #define TRANSFER_ERROR_DTVLOW_BEGIN        0x05
+     #define TRANSFER_ERROR_DTVTRANS_CHECKSUM   0x06
+     #define TRANSFER_ERROR_CLIENT_TIMEOUT      0x07
+     #define TRANSFER_ERROR_VERIFY_MISMATCH     0x08
+     #define TRANSFER_ERROR_CLIENT_ABORT        0x09
+     #define TRANSFER_ERROR_CRC16_MISMATCH      0x0a
+     #define TRANSFER_ERROR_COMMAND             0x0b
+   
+
+2.1 Transfer Commands
+---------------------
+
+2.1.1  'm' - set the transfer mode
+
+  syntax:   m <mode/B>
+  example:  m 01
+  returns:  -
+  
+  Set the transfer mode of all read 'r' or write 'w' commands.
+  
+  The following values are supported for 'mode':
+  
+    #define TRANSFER_MODE_NORMAL        0
+    #define TRANSFER_MODE_SERIAL_ONLY   1
+    #define TRANSFER_MODE_DTV_ONLY      2
+
+  Default mode is 'normal' (0). In this mode all transfers are directly
+  passing through the dtv2ser device and connecting the client and the DTV.
+
+    client <---> dtv2ser <---> DTV
+
+  All other modes are used for testing and debugging and allow to short
+  circuit parts of the transmission to test the other part's performance.
+
+  In 'serial only' (1) mode the DTV connection is disabled and only transfers
+  from and to the client are enabled. Use this to test transmission
+  performance along the serial lines.
+
+    client <---> dtv2ser
+
+  In 'dtv only' (2) mode the serial connection is disabled and the transfer
+  only takes part between the dtv2ser device and the DTV. Use this to test
+  transmission performance of the DTV connection.
+
+                 dtv2ser <---> DTV
+
+  Reading data from the dtv2ser device always generates a test pattern byte
+  that can be configured as a parameter in dtv2ser (see below).
+
+  Writing data towards the dtv2ser device in a test mode always compares the
+  arrived value with the test pattern and issues an error if the value does
+  not match.
+
+
+2.1.2  'r' - read dtv memory (transfer command)
+
+  syntax:   r <ram=00,rom=01/B> <address/T> <length/T> LF
+  example:  r 01 000001 0000
+
+  Read memory directly from the DTV and transfer it via serial to the client.
+
+     client <---- dtv2ser <---- DTV RAM/ROM
+  
+  It uses the transfer mode that is set with the 'm' Command.
+
+  In 'serial only' mode the client receives test patterns generated from
+  dtv2ser:
+
+     client <---- dtv2ser (generate test pattern byte)
+
+  In 'dtv only' mode dtv2ser transfers from the DTV and verifies the test
+  pattern:
+
+                  dtv2ser <---- DTV
+
+  The 'r' memory transfer protocol starts directly after the command line
+  status reply with this serial protocol:
+
+  1. First the client sends a 'start' byte:
+  
+    client ---> dtv2ser       Begin Byte: 00 (STATUS_OK)
+
+  2. Data is then chunked into blocks with the block size given as a dtv2ser
+  parameter (see below). Now each block is transmitted and followed by a word
+  with CRC16 checksum. The last block may contain fewer bytes than block size.
+
+    client <--- dtv2ser       Block Data: <block size> bytes 
+           <---               CRC16 of Block (Word)
+
+  If the block was received successfully on client side then the client does
+  nothing and waits for the next block. If an error on client side occurs then
+  an 'error' byte (0x01) is sent to dtv2ser and the transfer is aborted. The
+  dtv2ser device runs an error cycle and returns to command line mode:
+
+           --->               ERROR Byte: 01 (ERROR)
+
+  3. After receiving all blocks successfully, the client sends a 'ok' (0x00)
+  byte to dtv2ser. Transmission is finished and dtv2ser returns to command mode.
+
+           --->               End Byte: 00 (STATUS_OK)
+
+
+2.1.3  'w' - write dtv memory (transfer command)
+
+  syntax:   w <ram=00,rom=01/B> <adress/T> <length/T> LF
+  example:  w 00 000400 000200
+
+  Write memory directly from the client into the RAM of the DTV
+
+     client ----> dtv2ser ----> DTV RAM/ROM
+  
+  It uses the transfer mode that is set with the 'm' Command.
+
+  In 'serial only' mode the dtv2ser only receives serial data and compares it
+  against the test pattern:
+
+     client ----> dtv2ser (compare against test pattern byte)
+
+  In 'dtv only' mode the dtv2ser transfers a test pattern directly to the DTV:
+
+                  dtv2ser ----> DTV
+
+  The 'w' memory transfer protocol starts directly after the command line
+  status reply with this serial protocol:
+
+  1. First dtv2ser sends a 'start' byte:
+
+    client <--- dtv2ser       Begin Byte: 00 (STATUS_OK)
+
+  2. Data is then chunked into blocks with the block size given as a dtv2ser
+  parameter (see below). Now each block is transmitted and followed by a word
+  with CRC16 checksum. The last block may contain fewer bytes than block size.
+
+    client ---> dtv2ser       Block Data: <block size> bytes
+           --->               CRC16 of Block (Word)
+
+  If the block was received successfully on dtv2ser side then the device does
+  nothing and waits for the next block. If an error on dtv2ser side occurs
+  then an 'error' byte (0x01) is sent to the client and the transfer is
+  aborted. An error cycle is run and then dtv2ser returns to command mode.
+
+           <---               ERROR Byte: 01 (ERROR)
+
+  3. After receiving all blocks successfully, the dtv2ser sends a 'ok' (0x00)
+  byte to the client. Transmission is finished and dtv2ser returns to command
+  mode.
+
+           <---               End Byte: 00 (STATUS_OK)
+
+
+2.1.4  't' - return the result of the last transfer
+
+  syntax:   t LF
+  example:  t
+  returns:  <status/HEX> + LF
+            <duration in 10th of ms/HEX_WORD> + LF
+
+  After a transfer command (e.g. 'r' or 'w') the 't' command is used by the
+  client to determine if the transfer was successful and to query some
+  transfer results.
+
+  Status codes: see above "Transfer Status Codes"
+
+  The duration of the transfer is returned in tenths of milliseconds. You can
+  this value with the number of bytes transferred to calculate the transfer
+  speed.
+
+
+2.1.5  'b' - transfer data with boot protocol
+
+  syntax:   b <address/W> <length/W> LF
+  example:  b 0000 0100
+  returns:  -
+
+  Write memory directly to the DTV with the boot protocol.
+  DTV needs to run boot.prg to understand the slightly modified boot protocol.
+  At most 4000 bytes can be transferred.
+
+  The boot transfer serial protocol:
+
+  1. The client waits for dtv2ser to become ready (CTS) and then receives a
+  'ok' begin byte:
+
+    client <--- dtv2ser       Wait for CTS
+           <---               Begin Byte: 00 (STATUS_OK)
+
+  2. For each byte of the boot code: First wait for the dtv2ser to become
+  ready and then transfer the byte.
+
+    client <--- dtv2ser       Wait for CTS 
+           ---> Write Byte    Write next Byte of boot code
+
+  If an error occurs in dtv2ser after receiving the byte then an error byte
+  with the transfer state is sent back. Otherwise nothing is done. In an error
+  condition the dtv2ser runs an error cycle and returns to command mode.
+
+    client <--- dtv2ser       ERROR Byte: Transfer Status
+
+  3. If all bytes were transferred successfully then the dtv2ser replies with
+  an 'ok' status code and a checksum over the received bytes:
+
+    client <--- dtv2ser       Status Byte: 00 (STATUS OK)
+           <---               Checksum Byte: <chk> = sum(i + data[i]) & 0xff
+
+
+2.1.6  'dbr' - block read dtv memory (transfer command)
+
+   syntax:   r <ram=00,rom=01/B> <bank/B> <address/W> <length/W> LF
+   example:  r010000001000
+   returns:  -
+
+   Read memory directly from the DTV and transfer it via serial to the client a
+   max length of 0x4000 is allowed here.
+
+   This command is mainly useful for debugging purposes only.
+
+
+2.1.7  'dbw' - block write dtv memory (transfer command)
+
+   syntax:   w <ram=00,rom=01/B> <bank/B> <adress/W> <length/W> LF
+   example:  w000000001000
+   returns:  -
+
+   Transfer data from the client and write memory directly to the DTV a max
+   length of 0x4000 is allowed here.
+
+   This command is mainly useful for debugging purposes only.
+
+
+2.2 DTVTrans Commands
+---------------------
+
+2.2.1  'a' - is alive check of dtvtrans server
+
+  syntax:   a <timeout/W>
+  example:  a 0050
+  returns:  <status/B> + LF
+  
+  Determine wether the dtvtrans server is actually running on the DTV and replying.
+  The timeout is given in 10th of ms.
+
+
+2.2.2  'c' - execute a dtvtrans command
+
+  syntax:   c <command number/B> <output_size,0xff=varargs/B> [ <arg0/B> <arg1/B> ... ]
+  example:  c 03 00 00 10   (execute CMD_EXECUTE_MEM (03) with no output and 0x1000 addr)
+  returns:  <size of output/B> + LF      (only if output_size==0xff!)
+            <output bytes/B> ... + LF    (only if output_size>0)
+            <status/B> + LF
+
+  Executes a generic dtvtrans command on the connected dtvtrans server. 
+  A command is identified by a byte (described in PROTOCOL.txt of the original dtvtrans).
+  Each command has an optional set of input bytes and output bytes.
+
+  You have to pass the number of output bytes after the command byte. Use 0xff for a command
+  that uses variable size result. Then first the size is read and transferred.
+  
+  After the output size all input byte arguments are passed.
+  
+  After executing the command, all output values are returned in a single line.
+  
+  Examples:
+  
+  1. CMD_SYS
+              v-----------------v------ arguments for the sys command  
+     c 04 00 00 10 00 01 02 03 04
+        ^  ^--------------------------- no output
+        +------------------------------ command id
+        
+    output:
+    
+     00 + LF                      <---- status ok
+
+  2. CMD_SYS_RESULT
+     
+              v------------------------ argument (mode) for the sys_result command
+     c 05 04 00
+        ^  ^--------------------------- expect 4 bytes output
+        +------------------------------ comand id
+        
+    output:
+    
+     00010203 + LF                <---- 4 output bytes in hex
+     00 + LF                      <---- status ok
+     
+  3. CMD_QUERY_IMPLEMENTATION
+  
+     c 81 ff
+        ^  ^--------------------------- expect variable number of output
+        +------------------------------ command id
+        
+    output:
+    
+     0F + LF                      <---- return the number of output bytes
+     445456424F4F5420312E3250524531 +LF <-- output bytes in a line
+     00 + LF                      <---- status ok
+
+
+2.3 dtv2ser Device Commands
+---------------------------
+
+2.3.1  'x' - reset dtv
+
+  syntax:   x <reset_mode/B> LF
+  example:  x
+  returns:  <status/B>
+
+  Resets the DTV device.
+  
+  The following modes are supported:
+  
+    #define DTVLOW_RESET_NORMAL            0x00
+    #define DTVLOW_RESET_ENTER_DTVTRANS    0x01
+    #define DTVLOW_RESET_BYPASS_DTVMON     0x02
+
+  In 'normal' mode only the reset line is hold low for a given period (see
+  parameters below).
+
+  If 'enter dtvtrans' is enabled then ACK and D0 is held low during and
+  shortly after reset. This enters dtvtrans mode if the dtvmon (>=1.2) is
+  installed in ROM.
+
+  If 'bypass dtvmon' is enabled then the reset holds ACK and D1 low to bypass
+  entering DTVMON and boot the dtv instead
+
+
+2.3.2  'v' - return the dtv2ser version
+
+  syntax:   v LF
+  example:  v
+  returns:  <major/B><minor/B>
+
+  Return the version of the dtv2ser device. You can use this command as
+  is-alive signal from the dtv2ser.
+
+
+2.3.3  'e' - run an error cycle
+
+  syntax:   e LF
+  example:  e
+  returns:  -
+  
+  Runs an error cycle. This is mainly useful to test the cycle paramters.
+  
+
+2.3.4  'j' - enter JoyStream execution
+
+  syntax:   js
+  example:  js
+  returns:  -
+
+  Enter JoyStream execution. Interpret all received bytes as a JoyStream
+  command until the exit command is received. If the next JoyStream command
+  does not arrive during the last wait command then the JoyStream aborts and
+  a error cycle is executed.
+
+  JoyStream serial protocol:
+
+  1. Setup
+
+    client <--- dtv2ser       Wait for CTS
+           <---               Begin Byte: 00 (STATUS_OK)
+
+  2. For all bytes in joy stream:
+
+    client <--- dtv2ser       Wait for CTS
+           --->               Write Byte
+
+  If Byte is End Command (0x80) or a Byte is in the receive buffer then end
+  reception loop.
+
+  3. End of Reception:
+
+    client <--- dtv2ser       Status Byte: 00 (STATUS_OK) or Error
+  
+  See dtv2ser-joystick.txt for more details on the JoyStream.
+
+
+2.4 Parameter Commands
+----------------------
+
+    dtv2ser uses parameter values (either bytes or words) to store timeout
+    values or other transfer parameters. You can use the parameter commands to
+    set or query the parameter values. Parameters can also be stored in
+    non-volatile EEPROM and will be loaded automatically on power up.
+
+    All parameters are indexed by a number. Byte and word parameters have an
+    own range of indices.
+
+    Byte Parameters:
+    
+      PARAM_BYTE_DTVLOW_RECV_DELAY           = 0
+      PARAM_BYTE_ERROR_CONDITION_LOOPS       = 1
+      PARAM_BYTE_DIAGNOSE_PATTERN            = 2
+      PARAM_BYTE_MAX                         = 3
+
+    Word Parameters:
+  
+      PARAM_WORD_DTVLOW_WAIT_FOR_ACK_DELAY   = 0
+      PARAM_WORD_DTVLOW_PREPARE_RESET_DELAY  = 1
+      PARAM_WORD_DTVLOW_RESET_DELAY          = 2
+      PARAM_WORD_ERROR_CONDITION_DELAY       = 3
+      PARAM_WORD_SERIAL_RTS_TIMEOUT          = 4
+      PARAM_WORD_SERIAL_READ_AVAIL_TIMEOUT   = 5
+      PARAM_WORD_SERIAL_SEND_READY_TIMEOUT   = 6
+      PARAM_WORD_DTV_TRANSFER_BLOCK_SIZE     = 7
+      PARAM_WORD_MAX                         = 8
+      
+2.4.1  'pbg' - get a byte parameter
+
+  syntax:   pbg <byte parameter index/B> LF
+  example:  pbg00
+  returns:  <parameter value/B>
+
+2.4.2  'pbs' - set a byte parameter
+
+  syntax:   pbs <byte parameter index/B> <new value/B> LF
+  example:  pbs0010
+  returns:  -
+
+2.4.3  'pwg' - get a word parameter
+
+  syntax:   pwg <word parameter index/B> LF
+  example:  pwg00
+  returns:  <parameter value/W>
+
+2.4.4  'pws' - set a word parameter
+
+  syntax:   pws <byte parameter index/B> <new value/W> LF
+  example:  pws001000
+  returns:  -
+
+  The following commands return a parameter status result hex byte value:
+  
+    #define PARAM_OK                  0
+    #define PARAM_EEPROM_NOT_READY    1
+    #define PARAM_EEPROM_CRC_MISMATCH 2
+  
+2.4.5  'pc' - parameter command
+
+  syntax:   pc <mode/B> LF
+  example:  pc 00
+  returns:  <param_status/B>
+  
+  mode is:
+  
+    #define PARAM_COMMAND_RESET     0
+    #define PARAM_COMMAND_LOAD      1
+    #define PARAM_COMMAND_SAVE      2
+  
+2.4.6  'pq' - query number of byte and word parameters
+
+  syntax:   pq LF
+  example:  pq
+  returns:  <number of byte parameters/B>
+            <number of word parameters/B>
+
+----- EOF -----

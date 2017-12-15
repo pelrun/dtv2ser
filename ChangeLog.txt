@@ -1,0 +1,62 @@
+version 0.5 - 11.12.2010
+
+ dtv2sertrans:
+  * fixed double open problem in pySerial on Windows
+  * added missing 'g' command available in TLR's dtvtrans for usage compatibility  
+
+ dtv2ser firmware:
+  * added support for Arduino 2009 board (ATmega168, 16 MHz, 250kB/s transfer)
+
+version 0.4 - 14.9.2008
+
+ dtv2sertrans:
+  * rewrote whole application and added a more generic command handler
+  * added flash sub commands
+  * added state tracking of dtvtrans server
+  * added dtvtrans 1.0 commands, e.g. exit, init, load, run, save
+  * added fill command to fill memory of DTV
+  * added info command to query server information
+  * added ping command to perform is-alive check of server
+  * changed sys command now uses dtvtrans 1.0 sys, waits for result and
+    does a sys_result to query the result values
+  * added sys call diagnose to test reliability of sys call feature
+  
+ dtv2ser protocol:
+  * due to size contraints: redesigned and streamlined protocol
+  * added 'm' transfer mode command that replaces debug transfer commands
+  * added 'a' is-alive check to query if server has a running dtvtrans
+  * replaced all old dtvtrans commands with generic 'c' dtvtrans command
+
+ dtv2ser firmware:
+  * replaced debug transfer commands with one transfer routine that
+    uses a toggle command to determine data flow
+  * dtvtrans commands are not handled in the dtv2ser device anymore.
+    commands are triggered with 'c' and the client passes all arguments and
+    afterwards picks up the resulting output
+  
+version 0.3 - 2.3.2008
+ 
+ dtv2sertrans:
+  * fixed serial setup for windows
+  * added 'bootstrap' command
+  * added 'joy stream/type/wiggle' commands
+  * added AutoType generator
+  * added Screen Code compiler
+  * added local command switches, e.g.: bootstrap -s full
+  * added automatic file type detection by extension (*.bin, *.raw, *.prg)
+  * added output of total transfer time and size
+  
+ dtv2ser protocol:
+  * removed 't*' and replaced it with a single 't' command
+  * removed command argument verification to save space
+  * added 'js' command
+  * added new data transfer protocol for read/write mem and boot
+  * added transfer protocol for joystream
+  
+ dtv2ser firmware:
+  * cleaned up and stream-lined command execution
+  * added joystick output
+  * added joystream execution
+  * new RTS/CTS serial reception handling for fast dtvtrans 1.0 transfers
+  
+  

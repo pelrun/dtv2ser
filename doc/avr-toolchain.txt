@@ -1,0 +1,27 @@
+BUILD AVR TOOLCHAIN
+-------------------
+cv 24.08.2007
+
+1. BINUTILS (2.17) http://ftp.gnu.org/gnu/binutils/
+
+configure  --prefix=/usr/local/avr --target=avr --disable-nls --enable-install-libbfd
+make
+make install
+
+2. GCC (4.1.2/4.2.1) http://ftp.gnu.org/gnu/gcc/
+
+configure --prefix=/usr/local/avr --target=avr --enable-languages=c --disable-nls --disable-libssp --with-dwarf2
+make
+make install
+
+3. AVR-libc (1.4.6) https://savannah.nongnu.org/projects/avr-libc/
+
+configure --prefix=/usr/local/avr --build=`./config.guess` --host=avr
+make
+make install
+
+4. AVRdude (5.4) http://savannah.nongnu.org/projects/avrdude/
+
+configure --prefix=/usr/local/avr
+make
+make install
