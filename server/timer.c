@@ -108,8 +108,8 @@ void timer_init(void)
 }
 
 // timer counter
-volatile u16 timer_100us = 0;
-volatile u16 timer_10ms = 0;
+volatile uint16_t timer_100us = 0;
+volatile uint16_t timer_10ms = 0;
 
 // timer2 compare A handler
 #ifdef TIMER2_COMPA_vect
@@ -127,8 +127,8 @@ ISR(TIMER1_COMPA_vect)
   timer_10ms++;
 }
 
-void timer_delay_10ms(u16 timeout)
+void timer_delay_10ms(uint16_t timeout)
 { timer_10ms=0; while(timer_10ms<timeout); }
 
-void timer_delay_100us(u16 timeout)
+void timer_delay_100us(uint16_t timeout)
 { timer_100us=0; while(timer_100us<timeout); }

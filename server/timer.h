@@ -34,17 +34,17 @@ void timer_init(void);
 
 // a 100 Hz = 10ms timer
 // 16bit: 0,10ms...~10hours
-extern volatile u16 timer_10ms;
+extern volatile uint16_t timer_10ms;
 
 // a 99.83ms ~ 100ms timer
 // 16bit: 0,100us...6.5s
-extern volatile u16 timer_100us;
+extern volatile uint16_t timer_100us;
 
 // busy wait with 10ms timer
-extern void timer_delay_10ms(u16 timeout);
+extern void timer_delay_10ms(uint16_t timeout);
 
 // busy wait with 100us timer
-extern void timer_delay_100us(u16 timeout);
+extern void timer_delay_100us(uint16_t timeout);
 
 #endif
 

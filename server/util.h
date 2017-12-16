@@ -31,23 +31,23 @@
 
 // ----- conversion functions -----
 // convert nybble to hex char
-extern u08 nybble_to_hex(u08 in);
-// convert u08 to 2 hex chars
-extern void byte_to_hex(u08 in,u08 *out);
+extern uint8_t nybble_to_hex(uint8_t in);
+// convert uint8_t to 2 hex chars
+extern void byte_to_hex(uint8_t in,uint8_t *out);
 // convert word to 4 hex chars
-extern void word_to_hex(u16 in,u08 *out);
+extern void word_to_hex(uint16_t in,uint8_t *out);
 // convert dword to 6 hex chars
-extern void dword_to_hex6(u32 in,u08 *out);
+extern void dword_to_hex6(uint32_t in,uint8_t *out);
 
 // ----- parse functions: 01=ok, 00=error -----
 // parse a nybble
-extern u08 parse_nybble(u08 in,u08 *value);
+extern uint8_t parse_nybble(uint8_t in,uint8_t *value);
 // parse a byte
-extern u08 parse_byte(u08 *str,u08 *value);
+extern uint8_t parse_byte(uint8_t *str,uint8_t *value);
 // parse a word
-extern u08 parse_word(u08 *str,u16 *value);
+extern uint8_t parse_word(uint8_t *str,uint16_t *value);
 // parse a 6 byte dword
-extern u08 parse_dword6(u08 *str,u32 *value);
+extern uint8_t parse_dword6(uint8_t *str,uint32_t *value);
 
 #endif
 

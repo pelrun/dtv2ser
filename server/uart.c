@@ -104,10 +104,10 @@
 #define UART_RX_BUF_SIZE 16
 #define UART_RX_SET_CTS_POS  2
 #define UART_RX_CLR_CTS_POS  13
-static volatile u08 uart_rx_buf[UART_RX_BUF_SIZE];
-static volatile u08 uart_rx_start = 0;
-static volatile u08 uart_rx_end = 0;
-static volatile u08 uart_rx_size = 0;
+static volatile uint8_t uart_rx_buf[UART_RX_BUF_SIZE];
+static volatile uint8_t uart_rx_start = 0;
+static volatile uint8_t uart_rx_end = 0;
+static volatile uint8_t uart_rx_size = 0;
 
 // ---------- init ----------------------------------------------------------
 
@@ -119,8 +119,8 @@ void uart_init(void)
   cli();
 
   // baud rate
-  UBRRH = (u08)((UART_UBRR)>>8);
-  UBRRL = (u08)((UART_UBRR)&0xff);
+  UBRRH = (uint8_t)((UART_UBRR)>>8);
+  UBRRL = (uint8_t)((UART_UBRR)&0xff);
 
   UCSRB = 0x98; // 0x18  enable tranceiver and transmitter, RX interrupt
   UCSRC = 0x86; // 0x86 -> use UCSRC, 8 bit, 1 stop, no parity, asynch. mode
@@ -137,7 +137,7 @@ ISR(USART_RXC_vect)
 ISR(USART_RX_vect)
 #endif
 {
-  u08 data = UDR;
+  uint8_t data = UDR;
   uart_rx_buf[uart_rx_end] = data;
 
   uart_rx_end++;
@@ -157,14 +157,14 @@ ISR(USART_RX_vect)
   }
 
   // uart error?
-  u08 status = UCSRA;
+  uint8_t status = UCSRA;
   if ((status & (_BV(FE)|_BV(DOR)|_BV(PE))) != 0) {
     led_error_on();
   }
 #endif
 }
 
-u08 uart_read_data_available(void)
+uint8_t uart_read_data_available(void)
 {
   return uart_rx_start != uart_rx_end;
 }
@@ -188,11 +188,11 @@ void uart_start_reception(void)
   uart_set_cts(1); // set CTS
 }
 
-u08 uart_read(u08 *data)
+uint8_t uart_read(uint8_t *data)
 {
   // read for buffe to be filled
   timer_100us = 0;
-  u16 timeout = PARAM_WORD(PARAM_WORD_SERIAL_READ_AVAIL_TIMEOUT);
+  uint16_t timeout = PARAM_WORD(PARAM_WORD_SERIAL_READ_AVAIL_TIMEOUT);
   while(uart_rx_start==uart_rx_end) {
     if (timer_100us > timeout) {
       return 0;
@@ -209,7 +209,7 @@ u08 uart_read(u08 *data)
     uart_rx_start = 0;
 
   uart_rx_size--;
-  u08 size = uart_rx_size;
+  uint8_t size = uart_rx_size;
 
   sei();
 
@@ -224,12 +224,12 @@ u08 uart_read(u08 *data)
 
 // ---------- send ----------------------------------------------------------
 
-u08 uart_send(u08 data)
+uint8_t uart_send(uint8_t data)
 {
 #ifndef IGNORE_RTS
   // wait for RTS with timeout
   timer_100us = 0;
-  u16 rts_timeout = PARAM_WORD(PARAM_WORD_SERIAL_RTS_TIMEOUT);
+  uint16_t rts_timeout = PARAM_WORD(PARAM_WORD_SERIAL_RTS_TIMEOUT);
 
 #ifdef SHOW_WAIT_RTS
   led_ready_on();
@@ -249,7 +249,7 @@ u08 uart_send(u08 data)
 
   // wait for transmitter to become ready
   timer_100us = 0;
-  u16 timeout = PARAM_WORD(PARAM_WORD_SERIAL_SEND_READY_TIMEOUT);
+  uint16_t timeout = PARAM_WORD(PARAM_WORD_SERIAL_SEND_READY_TIMEOUT);
   while(!( UCSRA & (1<<UDRE))) {
     if (timer_100us > timeout) {
       return 0;

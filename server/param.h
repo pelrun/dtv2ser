@@ -109,8 +109,8 @@
 
 // combine all parameters
 typedef struct {
-  u08 param_8[PARAM_BYTE_MAX];
-  u16 param_16[PARAM_WORD_MAX];
+  uint8_t param_8[PARAM_BYTE_MAX];
+  uint16_t param_16[PARAM_WORD_MAX];
 } parameters_t;
 
 // access parameters
@@ -127,9 +127,9 @@ extern parameters_t parameters;
 // init parameters. try to load from eeprom or use default
 void param_init(void);
 // save param to eeprom (returns param result)
-u08 param_save(void);
+uint8_t param_save(void);
 // load param from eeprom (returns param result)
-u08 param_load(void);
+uint8_t param_load(void);
 // reset param
 void param_reset(void);
 

@@ -31,7 +31,7 @@
 
 // ----- read -----
 
-static u08 serial_begin_read_transfer(u32 length)
+static uint8_t serial_begin_read_transfer(uint32_t length)
 {
   uart_start_reception();
 
@@ -42,7 +42,7 @@ static u08 serial_begin_read_transfer(u32 length)
     return TRANSFER_ERROR_CLIENT_TIMEOUT;
 }
 
-static u08 serial_end_read_transfer(u08 lastStatus)
+static uint8_t serial_end_read_transfer(uint8_t lastStatus)
 {
   // write status to signal state of transfer
   if(!uart_send(lastStatus))
@@ -53,7 +53,7 @@ static u08 serial_end_read_transfer(u08 lastStatus)
   return lastStatus;
 }
 
-static u08 serial_read_byte(u08 *data)
+static uint8_t serial_read_byte(uint8_t *data)
 {
   // read data byte from serial
   if(uart_read(data))
@@ -62,17 +62,17 @@ static u08 serial_read_byte(u08 *data)
     return TRANSFER_ERROR_CLIENT_TIMEOUT;
 }
 
-static u08 serial_check_read_block(u16 crc16)
+static uint8_t serial_check_read_block(uint16_t crc16)
 {
   // read crc16 word from serial
-  u08 data[2];
+  uint8_t data[2];
   if(!uart_read(&data[0]))
     return TRANSFER_ERROR_CLIENT_TIMEOUT;
   if(!uart_read(&data[1]))
     return TRANSFER_ERROR_CLIENT_TIMEOUT;
 
   // compare crc16
-  u16 host_crc16 = (u16)data[0]<<8 | data[1];
+  uint16_t host_crc16 = (uint16_t)data[0]<<8 | data[1];
   if(host_crc16 == crc16)
     return TRANSFER_OK;
   else
@@ -89,11 +89,11 @@ host_transfer_funcs_t serial_host_read_funcs =
 
 // ----- write -----
 
-static u08 serial_begin_write_transfer(u32 length)
+static uint8_t serial_begin_write_transfer(uint32_t length)
 {
   uart_start_reception();
 
-  u08 data;
+  uint8_t data;
   // write 0 byte to signal start of read transfer
   if(uart_read(&data) && (data==TRANSFER_OK))
     return TRANSFER_OK;
@@ -101,9 +101,9 @@ static u08 serial_begin_write_transfer(u32 length)
     return TRANSFER_ERROR_CLIENT_TIMEOUT;
 }
 
-static u08 serial_end_write_transfer(u08 lastStatus)
+static uint8_t serial_end_write_transfer(uint8_t lastStatus)
 {
-  u08 data;
+  uint8_t data;
   // write status to signal state of transfer
   if(!uart_read(&data))
     data = TRANSFER_ERROR_CLIENT_TIMEOUT;
@@ -113,10 +113,10 @@ static u08 serial_end_write_transfer(u08 lastStatus)
   return data;
 }
 
-static u08 serial_check_write_block(u16 crc16)
+static uint8_t serial_check_write_block(uint16_t crc16)
 {
-  // send u16 crc16
-  u08 data = crc16 >> 8;
+  // send uint16_t crc16
+  uint8_t data = crc16 >> 8;
   if(!uart_send(data))
     return TRANSFER_ERROR_CLIENT_TIMEOUT;
   data = crc16 & 0xff;
@@ -131,7 +131,7 @@ static u08 serial_check_write_block(u16 crc16)
   return TRANSFER_OK;
 }
 
-static u08 serial_write_byte(u08 *data)
+static uint8_t serial_write_byte(uint8_t *data)
 {
   if(uart_send(*data))
     return TRANSFER_OK;

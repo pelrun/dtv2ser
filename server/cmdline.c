@@ -34,16 +34,16 @@
 #include "param.h"
 
 // buffer for user input
-static u08 cmdline_buf[CMDLINE_SIZE];
+static uint8_t cmdline_buf[CMDLINE_SIZE];
 // current position in command line
-static u08 cmdline_pos = 0;
+static uint8_t cmdline_pos = 0;
 // flag for command line error
-static u08 cmdline_error = 0;
+static uint8_t cmdline_error = 0;
 
 // local functions
 static void handle_return(void);
-static command_t *find_command(u08 *data);
-static u08 parse_args(u08 *pattern,u08 *data,u08 len,cmdline_args_t *args);
+static command_t *find_command(uint8_t *data);
+static uint8_t parse_args(uint8_t *pattern,uint8_t *data,uint8_t len,cmdline_args_t *args);
 
 // keep a set of arguments
 cmdline_args_t cmdline_args;
@@ -72,7 +72,7 @@ void cmdline_handle(void)
 {
   // read chars
   while(uart_read_data_available()) {
-    u08 data;
+    uint8_t data;
     uart_read(&data);
 
     // LF ends line
@@ -116,7 +116,7 @@ void cmdline_handle(void)
   }
 
   // disable error led?
-  u16 timeout = PARAM_WORD(PARAM_WORD_ERROR_CONDITION_DELAY);
+  uint16_t timeout = PARAM_WORD(PARAM_WORD_ERROR_CONDITION_DELAY);
   if(cmdline_error && (timer_10ms > timeout)) {
     led_error_off();
     cmdline_error = 0;
@@ -135,7 +135,7 @@ void cmdline_handle(void)
 // buffer is filled and user pressed return
 static void handle_return(void)
 {
-  u08 status = CMDLINE_STATUS_OK;
+  uint8_t status = CMDLINE_STATUS_OK;
   command_t *cmd = 0;
 
   // line too long?
@@ -183,11 +183,11 @@ static void handle_return(void)
 }
 
 // ----- find_command -----
-static command_t *find_command(u08 *data)
+static command_t *find_command(uint8_t *data)
 {
   command_t *cmd = command_table;
   while(cmd->len>0) {
-    u08 i;
+    uint8_t i;
     for(i=0;i<cmd->len;i++) {
       if(cmd->name[i]!=data[i])
         break;
@@ -200,8 +200,8 @@ static command_t *find_command(u08 *data)
 }
 
 // ----- parse args -----
-static u08 parse_args(u08 *pattern,
-                      u08 *data,u08 len,
+static uint8_t parse_args(uint8_t *pattern,
+                      uint8_t *data,uint8_t len,
                       cmdline_args_t *args)
 {
   args->num_byte  = 0;
@@ -224,7 +224,7 @@ static u08 parse_args(u08 *pattern,
   // decode pattern and parse
   while(*pattern) {
     // pick next pattern
-    u08 p = *pattern;
+    uint8_t p = *pattern;
     if(p!='*')
       pattern++;
 

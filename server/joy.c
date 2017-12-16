@@ -36,7 +36,7 @@ void joy_begin(void)
   JOY_DDR  |= JOY_MASK;
 }
 
-void joy_out(u08 value)
+void joy_out(uint8_t value)
 {
   JOY_PORT = (~value & JOY_MASK) | ~(JOY_MASK);
 }

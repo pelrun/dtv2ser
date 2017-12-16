@@ -93,10 +93,10 @@ void dtvlow_state_recv(void)
   DTVLOW_ACKRESET_PORT |=   DTVLOW_ACK_MASK;
 }
 
-void dtvlow_reset_dtv(u08 mode)
+void dtvlow_reset_dtv(uint8_t mode)
 {
-  u16 pre_delay = PARAM_WORD(PARAM_WORD_DTVLOW_PREPARE_RESET_DELAY);
-  u16 delay = PARAM_WORD(PARAM_WORD_DTVLOW_RESET_DELAY);
+  uint16_t pre_delay = PARAM_WORD(PARAM_WORD_DTVLOW_PREPARE_RESET_DELAY);
+  uint16_t delay = PARAM_WORD(PARAM_WORD_DTVLOW_RESET_DELAY);
 
   // output: ACK,Dx,RST
   DTVLOW_ACKRESET_DDR |= DTVLOW_ACK_MASK | DTVLOW_RESET_MASK;
@@ -133,14 +133,14 @@ void dtvlow_reset_dtv(u08 mode)
   DTVLOW_DATACLK_DDR   &=  ~DTVLOW_DATA_MASK;
 }
 
-static u08 wait_ack(u08 wait_value)
+static uint8_t wait_ack(uint8_t wait_value)
 {
-  u08 status = 0;
+  uint8_t status = 0;
 
-  u16 timeout = PARAM_WORD(PARAM_WORD_DTVLOW_WAIT_FOR_ACK_DELAY);
+  uint16_t timeout = PARAM_WORD(PARAM_WORD_DTVLOW_WAIT_FOR_ACK_DELAY);
   timer_100us = 0;
   while(timer_100us<timeout) {
-    u08 value = DTVLOW_ACKRESET_PIN;
+    uint8_t value = DTVLOW_ACKRESET_PIN;
     if((value & DTVLOW_ACK_MASK)==wait_value) {
       status = 1;
       break;
@@ -149,20 +149,20 @@ static u08 wait_ack(u08 wait_value)
   return status;
 }
 
-u08 dtvlow_is_alive(u16 timeout)
+uint8_t dtvlow_is_alive(uint16_t timeout)
 {
   // delay in 100us between samples taken
-  u16 idle    = PARAM_WORD(PARAM_WORD_IS_ALIVE_IDLE);
+  uint16_t idle    = PARAM_WORD(PARAM_WORD_IS_ALIVE_IDLE);
 
   // sample ack signal and determine value: repeat * delay * 100us
-  u08 repeat  = PARAM_BYTE(PARAM_BYTE_IS_ALIVE_REPEAT);
-  u08 delay   = PARAM_BYTE(PARAM_BYTE_IS_ALIVE_DELAY);
+  uint8_t repeat  = PARAM_BYTE(PARAM_BYTE_IS_ALIVE_REPEAT);
+  uint8_t delay   = PARAM_BYTE(PARAM_BYTE_IS_ALIVE_DELAY);
 
   // stages of clock steps
-  u08 steps = 0;
+  uint8_t steps = 0;
 
   // first ack
-  u08 ack;
+  uint8_t ack;
 
   // until timeout occurs
   timer_10ms = 0;
@@ -180,10 +180,10 @@ u08 dtvlow_is_alive(u16 timeout)
     }
 
     // make sure the ack signal has and holds the value
-    u08 i=0;
+    uint8_t i=0;
     while(i<repeat) {
       // check ACK level
-      u08 value = DTVLOW_ACKRESET_PIN;
+      uint8_t value = DTVLOW_ACKRESET_PIN;
       if((value & DTVLOW_ACK_MASK)!=ack)
         break;
 
@@ -205,9 +205,9 @@ u08 dtvlow_is_alive(u16 timeout)
   return TRANSFER_ERROR_NOT_ALIVE;
 }
 
-u08 dtvlow_send_byte(u08 byte)
+uint8_t dtvlow_send_byte(uint8_t byte)
 {
-  u08 dx,value;
+  uint8_t dx,value;
 
 #if 0
   // make sure ack is high
@@ -261,10 +261,10 @@ u08 dtvlow_send_byte(u08 byte)
 
 #define DELAY_FOR_RECV _delay_loop_1(delay);
 
-u08 dtvlow_recv_byte(u08 *byte)
+uint8_t dtvlow_recv_byte(uint8_t *byte)
 {
-  u08 value;
-  u08 delay = PARAM_BYTE(PARAM_BYTE_DTVLOW_RECV_DELAY);
+  uint8_t value;
+  uint8_t delay = PARAM_BYTE(PARAM_BYTE_DTVLOW_RECV_DELAY);
 
   *byte = 0;
 
@@ -305,9 +305,9 @@ u08 dtvlow_recv_byte(u08 *byte)
 
 #ifdef USE_BOOT
 
-u08 dtvlow_send_byte_boot(u08 byte)
+uint8_t dtvlow_send_byte_boot(uint8_t byte)
 {
-  u08 dx,value;
+  uint8_t dx,value;
 
   // bit 7-6
   dx = (byte >> 6) & 0x03;

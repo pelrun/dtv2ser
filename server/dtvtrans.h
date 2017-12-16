@@ -30,14 +30,14 @@
 #include "transfer.h"
 
 // receive mem block from dtv. returns status
-u08 dtvtrans_recv_mem_block(void);
+uint8_t dtvtrans_recv_mem_block(void);
 
 // send a mem block to dtv. returns status
-u08 dtvtrans_send_mem_block(void);
+uint8_t dtvtrans_send_mem_block(void);
 
 #ifdef USE_OLDCMD
 // execute mem. returns status
-u08 dtvtrans_exec_mem(u16 addr);
+uint8_t dtvtrans_exec_mem(uint16_t addr);
 #endif
 
 // this special out_size reads the output length from the command
@@ -48,7 +48,7 @@ u08 dtvtrans_exec_mem(u16 addr);
 // if out_size is set to DTVTRANS_CMD_VARARG:
 //  1. read first byte: size n
 //  2. read <n> bytes
-u08 dtvtrans_command(u08 command,u08 in_size,u08 *in_buf,u08 out_size);
+uint8_t dtvtrans_command(uint8_t command,uint8_t in_size,uint8_t *in_buf,uint8_t out_size);
 
 #endif
 

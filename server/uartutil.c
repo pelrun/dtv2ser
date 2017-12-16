@@ -27,7 +27,7 @@
 #include "uart.h"
 #include "util.h"
 
-u08 uart_send_string(u08 *str)
+uint8_t uart_send_string(uint8_t *str)
 {
   while(*str) {
     if(!uart_send(*str))
@@ -37,23 +37,23 @@ u08 uart_send_string(u08 *str)
   return 1;
 }
 
-u08 uart_send_data(u08 *data,u08 len)
+uint8_t uart_send_data(uint8_t *data,uint8_t len)
 {
-  for(u08 i=0;i<len;i++) {
+  for(uint8_t i=0;i<len;i++) {
     if(!uart_send(data[i]))
       return 0;
   }
   return 1;
 }
 
-u08 uart_send_crlf(void)
+uint8_t uart_send_crlf(void)
 {
-  return uart_send_string((u08 *)"\r\n");
+  return uart_send_string((uint8_t *)"\r\n");
 }
 
-static u08 buf[6];
+static uint8_t buf[6];
 
-u08 uart_send_hex_byte_crlf(u08 data)
+uint8_t uart_send_hex_byte_crlf(uint8_t data)
 {
   byte_to_hex(data,buf);
   if(uart_send_data(buf,2))
@@ -62,7 +62,7 @@ u08 uart_send_hex_byte_crlf(u08 data)
     return 0;
 }
 
-u08 uart_send_hex_word_crlf(u16 data)
+uint8_t uart_send_hex_word_crlf(uint16_t data)
 {
   word_to_hex(data,buf);
   if(uart_send_data(buf,4))
@@ -71,7 +71,7 @@ u08 uart_send_hex_word_crlf(u16 data)
     return 0;
 }
 
-u08 uart_send_hex_dword6_crlf(u32 data)
+uint8_t uart_send_hex_dword6_crlf(uint32_t data)
 {
   dword_to_hex6(data,buf);
   if(uart_send_data(buf,6))

@@ -111,24 +111,24 @@ void dtvlow_state_send(void);
 void dtvlow_state_recv(void);
 
 // perform a reset of the dtv. if knock=1 then enter dtvtrans
-void dtvlow_reset_dtv(u08 mode);
+void dtvlow_reset_dtv(uint8_t mode);
 
 // send a byte. returns true if got ack
 // make sure the send state is called first!
-u08 dtvlow_send_byte(u08 byte);
+uint8_t dtvlow_send_byte(uint8_t byte);
 
 // recv a byte. returns true if got ack
 // make sure the recv state is called first!
-u08 dtvlow_recv_byte(u08 *byte);
+uint8_t dtvlow_recv_byte(uint8_t *byte);
 
 #ifdef USE_BOOT
 // send a byte in boot mode. returns true if ok
 // make sure the send state is called first!
-u08 dtvlow_send_byte_boot(u08 byte);
+uint8_t dtvlow_send_byte_boot(uint8_t byte);
 #endif
 
 // check presence
-u08 dtvlow_is_alive(u16 timeout);
+uint8_t dtvlow_is_alive(uint16_t timeout);
 
 #endif
 

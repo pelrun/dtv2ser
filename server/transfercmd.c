@@ -37,15 +37,15 @@
 #include "transfercmd.h"
 
 // transfer mode
-static u08 transfer_mode = TRANSFER_MODE_NORMAL;
+static uint8_t transfer_mode = TRANSFER_MODE_NORMAL;
 
 // ----- Helpers -----
 
 static void generic_transfer(void)
 {
-  u08 mode = CMDLINE_ARG_BYTE(0);
-  u32 addr = CMDLINE_ARG_DWORD(0);
-  u32 len  = CMDLINE_ARG_DWORD(1);
+  uint8_t mode = CMDLINE_ARG_BYTE(0);
+  uint32_t addr = CMDLINE_ARG_DWORD(0);
+  uint32_t len  = CMDLINE_ARG_DWORD(1);
 
 #ifdef USE_LCD
   lcd_print_dword6(8,0,'l',len);
@@ -54,8 +54,8 @@ static void generic_transfer(void)
 #endif
 
   // perform transfer
-  u16 block_size = PARAM_WORD(PARAM_WORD_DTV_TRANSFER_BLOCK_SIZE);
-  u08 status = transfer_mem(mode,addr,len,block_size);
+  uint16_t block_size = PARAM_WORD(PARAM_WORD_DTV_TRANSFER_BLOCK_SIZE);
+  uint8_t status = transfer_mem(mode,addr,len,block_size);
 
 #ifdef USE_LCD
   lcd_print_byte(3,0,'s',status);
@@ -70,10 +70,10 @@ static void generic_transfer(void)
 
 static void generic_block_transfer(void)
 {
-  u08 mode   = CMDLINE_ARG_BYTE(0);
-  u08 bank   = CMDLINE_ARG_BYTE(1);
-  u16 offset = CMDLINE_ARG_WORD(0);
-  u16 length = CMDLINE_ARG_WORD(1);
+  uint8_t mode   = CMDLINE_ARG_BYTE(0);
+  uint8_t bank   = CMDLINE_ARG_BYTE(1);
+  uint16_t offset = CMDLINE_ARG_WORD(0);
+  uint16_t length = CMDLINE_ARG_WORD(1);
 
 #ifdef USE_LCD
   lcd_print_word(10,0,'l',length);
@@ -83,7 +83,7 @@ static void generic_block_transfer(void)
 #endif
 
   // perform transfer
-  u08 status = transfer_mem_block(mode,bank,offset,length);
+  uint8_t status = transfer_mem_block(mode,bank,offset,length);
 
 #ifdef USE_LCD
   lcd_print_byte(5,0,'s',status);

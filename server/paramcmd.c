@@ -39,7 +39,7 @@ void exec_set_byte_param(void)
 
 void exec_get_byte_param(void)
 {
-  u08 value = PARAM_BYTE(CMDLINE_ARG_BYTE(0));
+  uint8_t value = PARAM_BYTE(CMDLINE_ARG_BYTE(0));
   uart_send_hex_byte_crlf(value);
 }
 
@@ -51,14 +51,14 @@ void exec_set_word_param(void)
 
 void exec_get_word_param(void)
 {
-  u16 value = PARAM_WORD(CMDLINE_ARG_BYTE(0));
+  uint16_t value = PARAM_WORD(CMDLINE_ARG_BYTE(0));
   uart_send_hex_word_crlf(value);
 }
 
 void exec_param_cmd(void)
 {
-  u08 mode = CMDLINE_ARG_BYTE(0);
-  u08 result = PARAM_OK;
+  uint8_t mode = CMDLINE_ARG_BYTE(0);
+  uint8_t result = PARAM_OK;
   if(mode==PARAM_COMMAND_RESET)
     param_reset();
   else if(mode==PARAM_COMMAND_LOAD)

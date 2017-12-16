@@ -55,11 +55,11 @@
 // ----- transfer status -----
 typedef struct {
   // number of bytes transferred
-  u32 length;
+  uint32_t length;
   // time in ms of full transfer
-  u16 ms_time;
+  uint16_t ms_time;
   // result of last transfer
-  u08 result;
+  uint8_t result;
 } transfer_state_t;
 
 // access the transfer status
@@ -67,16 +67,16 @@ extern transfer_state_t transfer_state;
 
 // ----- command table for host transfer -----
 // byte transfer function
-typedef u08 (*host_transfer_byte_func_t)(u08 *data);
+typedef uint8_t (*host_transfer_byte_func_t)(uint8_t *data);
 
 // host commands: transfer blocks of memory to/from host
 typedef struct {
   // begin a transfer. returns status
-  u08 (*begin_transfer)(u32 length);
+  uint8_t (*begin_transfer)(uint32_t length);
   // end a trasfer. returns status
-  u08 (*end_transfer)(u08 lastStatus);
+  uint8_t (*end_transfer)(uint8_t lastStatus);
   // end a block
-  u08 (*check_block)(u16 block_crc16);
+  uint8_t (*check_block)(uint16_t block_crc16);
   // transfer a byte
   host_transfer_byte_func_t transfer_byte;
 } host_transfer_funcs_t;
@@ -85,24 +85,24 @@ typedef struct {
 // dtv transfer state
 typedef struct {
   // mode: 00=ram 01=rom
-  u08 mode;
+  uint8_t mode;
   // bank: addr>>14
-  u08 bank;
+  uint8_t bank;
   // offset: addr & 0x3fff
-  u16 offset;
+  uint16_t offset;
   // length: <= 0x4000
-  u16 length;
+  uint16_t length;
   // out: block crc16
-  u16 crc16;
+  uint16_t crc16;
   // out: actually transferred length
-  u16 transfer_length;
+  uint16_t transfer_length;
 } dtv_transfer_state_t;
 
 // the shared instance of the dtv transfer state
 extern dtv_transfer_state_t dtv_transfer_state;
 
 // transfer a block to/from the dtv. returns result (see above)
-typedef u08 (*dtv_transfer_block_func_t)(void);
+typedef uint8_t (*dtv_transfer_block_func_t)(void);
 
 // ----- pointers to current transfer state -----
 // current host transfer funcs
@@ -112,23 +112,23 @@ extern dtv_transfer_block_func_t current_dtv_transfer_block_func;
 
 // ----- main transfer -----
 // transfer memory from/to host/dtv. updates transfer result (see above)
-extern u08 transfer_mem(u08 mode,u32 base,u32 length,u16 block_size);
+extern uint8_t transfer_mem(uint8_t mode,uint32_t base,uint32_t length,uint16_t block_size);
 
 // transfer a single memory block only
-extern u08 transfer_mem_block(u08 mode,u08 bank,u16 offset,u16 length);
+extern uint8_t transfer_mem_block(uint8_t mode,uint8_t bank,uint16_t offset,uint16_t length);
 
 // ----- diagnose functions -----
 #ifdef USE_DIAGNOSE
 
 // dummy send block. returns status
-extern u08 diagnose_dtv_send_block(void);
+extern uint8_t diagnose_dtv_send_block(void);
 // dummy receive block. returns status
-extern u08 diagnose_dtv_recv_block(void);
+extern uint8_t diagnose_dtv_recv_block(void);
 
 #define DIAGNOSE_HOST_MODE_READ   0
 #define DIAGNOSE_HOST_MODE_WRITE  1
 // set mode for diagnose transfer: 0=read from host,1=write to host
-extern u08 diagnose_host_mode;
+extern uint8_t diagnose_host_mode;
 
 // dummy host transfer funcs
 extern host_transfer_funcs_t diagnose_host_transfer_funcs;

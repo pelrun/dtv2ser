@@ -64,15 +64,15 @@ parameters_t parameters;
 static uint16_t calc_crc16(parameters_t *p)
 {
   uint16_t crc16 = 0xffff;
-  u08 *data = (u08 *)p;
-  for(u16 i=0;i<sizeof(parameters_t);i++) {
+  uint8_t *data = (uint8_t *)p;
+  for(uint16_t i=0;i<sizeof(parameters_t);i++) {
     crc16 = _crc16_update(crc16,*data);
     data++;
   }
   return crc16;
 }
 
-u08 param_save(void)
+uint8_t param_save(void)
 {
   // check that eeprom is writable
   if(!eeprom_is_ready())
@@ -88,7 +88,7 @@ u08 param_save(void)
   return PARAM_OK;
 }
 
-u08 param_load(void)
+uint8_t param_load(void)
 {
   // check that eeprom is readable
   if(!eeprom_is_ready())

@@ -36,9 +36,9 @@
 
 // ----- joy stream -----
 
-static u08 command;
-static u08 value;
-static u16 delay;
+static uint8_t command;
+static uint8_t value;
+static uint16_t delay;
 
 void exec_joy_stream(void)
 {
@@ -47,9 +47,9 @@ void exec_joy_stream(void)
 
   joy_begin();
 
-  u08 result = JOY_COMMAND_OK;
-  u08 need_cmd = 1;
-  u08 led_on = 0;
+  uint8_t result = JOY_COMMAND_OK;
+  uint8_t need_cmd = 1;
+  uint8_t led_on = 0;
   while(1) {
     if(need_cmd) {
       // wait for next command

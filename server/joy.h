@@ -50,7 +50,7 @@
 #endif
 
 void joy_begin(void);
-void joy_out(u08 value);
+void joy_out(uint8_t value);
 void joy_end(void);
 
 #endif

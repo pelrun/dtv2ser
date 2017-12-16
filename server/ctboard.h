@@ -74,7 +74,7 @@
 #define CT_DELAY_100MS	5
 #define CT_DELAY_500MS  25
 #define CT_DELAY_1SEC   50
-void ct_delay(u08 num);
+void ct_delay(uint8_t num);
 #endif
 
 // ---------- KEYS & LEDS ---------------------------------------------------
@@ -85,17 +85,17 @@ void ct_delay(u08 num);
 #define CT_LED_ALL      0x78
 
 void ct_init_keyled(void);
-void ct_led_on(u08 led_mask);
-void ct_led_off(u08 led_mask);
-//void ct_led_bits(u08 num);
+void ct_led_on(uint8_t led_mask);
+void ct_led_off(uint8_t led_mask);
+//void ct_led_bits(uint8_t num);
 #ifdef CT_BOARD_KEYS
-u08 ct_get_key_press(void);
+uint8_t ct_get_key_press(void);
 #endif
 
 // ---------- BEEPER --------------------------------------------------------
 #ifdef USE_BEEPER
 void ct_init_beeper(void);
-void ct_beep(u08 ms);
+void ct_beep(uint8_t ms);
 #endif
 
 // ---------- UART MPLEX ----------------------------------------------------
@@ -114,7 +114,7 @@ void ct_beep(u08 ms);
 // bitmask for all mplex bits
 #define CT_MPLEX_MASK					0x07
 void ct_init_mplex(void);
-void ct_set_mplex(u08 mode);
+void ct_set_mplex(uint8_t mode);
 
 // ---------- LCD -----------------------------------------------------------
 #ifdef USE_LCD
@@ -134,14 +134,14 @@ void ct_set_mplex(u08 mode);
 #define CT_LCD_D_BIT            0x08
 
 void ct_lcd_init(void);
-void ct_lcd_u08(u08 cmd, u08 cmdOrData);
-void ct_lcd_pos(u08 x,u08 y);
-//void ct_lcd_mode(u08 mode);
-//void ct_lcd_line(u08 y,u08 *line,u08 len);
-//void ct_lcd_string(u08 *str);
+void ct_lcd_uint8_t(uint8_t cmd, uint8_t cmdOrData);
+void ct_lcd_pos(uint8_t x,uint8_t y);
+//void ct_lcd_mode(uint8_t mode);
+//void ct_lcd_line(uint8_t y,uint8_t *line,uint8_t len);
+//void ct_lcd_string(uint8_t *str);
 
-#define ct_lcd_data(a)        ct_lcd_u08(a, CT_LCD_RS_BIT)
-#define ct_lcd_cmd(a)         ct_lcd_u08(a, 0)
+#define ct_lcd_data(a)        ct_lcd_uint8_t(a, CT_LCD_RS_BIT)
+#define ct_lcd_cmd(a)         ct_lcd_uint8_t(a, 0)
 
 #define ct_lcd_clear()        ct_lcd_cmd(CT_LCD_CMD_CLEAR)
 #define ct_lcd_char(b)        ct_lcd_data(b)
@@ -150,16 +150,16 @@ void ct_lcd_pos(u08 x,u08 y);
 
 // ---------- ADC -----------------------------------------------------------
 #ifdef CT_BOARD_ADC
-u16 ct_read_adc(u08 channel);
+uint16_t ct_read_adc(uint8_t channel);
 #endif
 
 // ---------- GPIO ----------------------------------------------------------
 #ifdef CT_BOARD_GPIO
 #define CP_DEF(NUM) \
-void ct_set_cp ## NUM ## _dir(u08 out); \
-u08 ct_get_cp ## NUM ## _dir(void); \
-void ct_set_cp ## NUM (u08 on); \
-u08 ct_get_cp ## NUM (void);
+void ct_set_cp ## NUM ## _dir(uint8_t out); \
+uint8_t ct_get_cp ## NUM ## _dir(void); \
+void ct_set_cp ## NUM (uint8_t on); \
+uint8_t ct_get_cp ## NUM (void);
 CP_DEF(1)
 CP_DEF(2)
 CP_DEF(3)
@@ -168,12 +168,12 @@ CP_DEF(3)
 // ---------- RTS/CTS -------------------------------------------------------
 #ifdef USE_XPORT
 void ct_xport_init_rts_cts(void);
-u08 ct_xport_get_rts(void);
-void ct_xport_set_cts(u08 on);
+uint8_t ct_xport_get_rts(void);
+void ct_xport_set_cts(uint8_t on);
 #else
 void ct_com_init_rts_cts(void);
-u08 ct_com_get_rts(void);
-void ct_com_set_cts(u08 on);
+uint8_t ct_com_get_rts(void);
+void ct_com_set_cts(uint8_t on);
 #endif
 
 #endif

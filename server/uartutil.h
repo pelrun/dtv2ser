@@ -30,18 +30,18 @@
 #include "global.h"
 
 // send a c string
-u08 uart_send_string(u08 *data);
+uint8_t uart_send_string(uint8_t *data);
 // send data
-u08 uart_send_data(u08 *data,u08 size);
+uint8_t uart_send_data(uint8_t *data,uint8_t size);
 // send a CR+LF
-u08 uart_send_crlf(void);
+uint8_t uart_send_crlf(void);
 
 // send a hex byte
-u08 uart_send_hex_byte_crlf(u08 data);
+uint8_t uart_send_hex_byte_crlf(uint8_t data);
 // send a hex word
-u08 uart_send_hex_word_crlf(u16 data);
+uint8_t uart_send_hex_word_crlf(uint16_t data);
 // send a hex6 dword
-u08 uart_send_hex_dword6_crlf(u32 data);
+uint8_t uart_send_hex_dword6_crlf(uint32_t data);
 
 #endif
 

@@ -40,14 +40,14 @@
 // enter error condition to timeout host transfer
 void error_condition(void)
 {
-  u08 toggle = 1;
+  uint8_t toggle = 1;
   led_error_on();
 
   uart_start_reception();
 
   // do some blinking
-  u08 num = PARAM_BYTE(PARAM_BYTE_ERROR_CONDITION_LOOPS);
-  for(u08 i=0;i<num;i++) {
+  uint8_t num = PARAM_BYTE(PARAM_BYTE_ERROR_CONDITION_LOOPS);
+  for(uint8_t i=0;i<num;i++) {
     timer_delay_10ms(PARAM_WORD(PARAM_WORD_ERROR_CONDITION_DELAY));
     toggle ^= 1;
     if(toggle) {
@@ -58,7 +58,7 @@ void error_condition(void)
 
     // drain read buffer
     while(uart_read_data_available()) {
-      u08 dummy;
+      uint8_t dummy;
       uart_read(&dummy);
     }
   }
@@ -76,17 +76,17 @@ void error_condition(void)
 
 void exec_go_memory(void)
 {
-  u16 addr = CMDLINE_ARG_WORD(0);
+  uint16_t addr = CMDLINE_ARG_WORD(0);
 
 #ifdef USE_LCD
   lcd_clear();
-  lcd_print_string(3,1,(u08*)"goto");
+  lcd_print_string(3,1,(uint8_t*)"goto");
   lcd_print_word(8,1,'a',addr);
 #endif
 
   // perform go
   led_transmit_on();
-  u08 status = dtvtrans_exec_mem(addr);
+  uint8_t status = dtvtrans_exec_mem(addr);
   led_transmit_off();
 
   uart_send_hex_byte_crlf(status);
@@ -98,11 +98,11 @@ void exec_go_memory(void)
 
 void exec_reset_dtv(void)
 {
-  u08 reset_mode = CMDLINE_ARG_BYTE(0);
+  uint8_t reset_mode = CMDLINE_ARG_BYTE(0);
 
 #ifdef USE_LCD
   lcd_clear();
-  lcd_print_string(0,1,(u08*)"reset");
+  lcd_print_string(0,1,(uint8_t*)"reset");
 #endif
 
   // perform reset
@@ -131,13 +131,13 @@ void exec_version(void)
 
 void exec_command(void)
 {
-  u08 cmd      = CMDLINE_ARG_BYTE(0);
-  u08 out_size = CMDLINE_ARG_BYTE(1);
+  uint8_t cmd      = CMDLINE_ARG_BYTE(0);
+  uint8_t out_size = CMDLINE_ARG_BYTE(1);
   // use var args here:
-  u08 in_size  = CMDLINE_NUM_ARG_BYTE - 2;
-  u08 *in_buf  = &CMDLINE_ARG_BYTE(2);
+  uint8_t in_size  = CMDLINE_NUM_ARG_BYTE - 2;
+  uint8_t *in_buf  = &CMDLINE_ARG_BYTE(2);
 
-  u08 status   = dtvtrans_command(cmd,in_size,in_buf,out_size);
+  uint8_t status   = dtvtrans_command(cmd,in_size,in_buf,out_size);
   uart_send_hex_byte_crlf(status);
 }
 
@@ -147,7 +147,7 @@ void exec_is_alive(void)
 {
   led_transmit_on();
   dtvlow_state_send();
-  u08 status = dtvlow_is_alive(CMDLINE_ARG_WORD(0));
+  uint8_t status = dtvlow_is_alive(CMDLINE_ARG_WORD(0));
   dtvlow_state_off();
   led_transmit_off();
   uart_send_hex_byte_crlf(status);

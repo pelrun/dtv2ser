@@ -35,9 +35,9 @@
 
 #ifdef CT_BOARD_DELAY
 
-void ct_delay(u08 num)
+void ct_delay(uint8_t num)
 {
-  u08 counter;
+  uint8_t counter;
   for(counter=0;counter<num;counter++) {
     _delay_loop_2(30000);
     counter++;
@@ -49,7 +49,7 @@ void ct_delay(u08 num)
 // ---------- KEYS & LEDS ---------------------------------------------------
 
 #ifdef CT_BOARD_KEYS
-static u08 key_state;
+static uint8_t key_state;
 #endif
 
 void ct_init_keyled(void)
@@ -61,18 +61,18 @@ void ct_init_keyled(void)
 #endif
 }
 
-void ct_led_on(u08 led_mask)
+void ct_led_on(uint8_t led_mask)
 {
   PORTD &= ~led_mask;
 }
 
-void ct_led_off(u08 led_mask)
+void ct_led_off(uint8_t led_mask)
 {
   PORTD |= led_mask;
 }
 
 #if 0
-void ct_led_bits(u08 bits)
+void ct_led_bits(uint8_t bits)
 {
   bits = (~bits & 0xf) << 3;
   PORTD &= ~ CT_LED_ALL;
@@ -82,11 +82,11 @@ void ct_led_bits(u08 bits)
 
 #ifdef CT_BOARD_KEYS
 
-u08 ct_read_keys(void)
+uint8_t ct_read_keys(void)
 {
   // read old led state
-  u08 oldPORTD = PORTD;
-  u08 result;
+  uint8_t oldPORTD = PORTD;
+  uint8_t result;
 
   // disable outputs of leds and activate pullups
   DDRD &= ~CT_LED_ALL;
@@ -101,12 +101,12 @@ u08 ct_read_keys(void)
   return result;
 }
 
-u08 ct_get_key_press()
+uint8_t ct_get_key_press()
 {
-  u08 i,j,changed;
+  uint8_t i,j,changed;
 
   // read initial keystate
-  u08 new_key_state = ct_read_keys();
+  uint8_t new_key_state = ct_read_keys();
 
   // no keys pressed -> return 0
   if(new_key_state == 0) {
@@ -121,7 +121,7 @@ u08 ct_get_key_press()
 
   // make sure state is stable
   for(i=0;i<10;i++) {
-    u08 temp_key_state = ct_read_keys();
+    uint8_t temp_key_state = ct_read_keys();
     if(temp_key_state != new_key_state)
       return 0;
     for(j=0;j<255;j++) { asm("nop"); }
@@ -151,11 +151,11 @@ static void ct_beep_toggle(void)
   PORTA = PORTA ^ 0x10;
 }
 
-void ct_beep(u08 num)
+void ct_beep(uint8_t num)
 {
-  u08 i;
+  uint8_t i;
   for(i=0;i<num;i++) {
-    u08 j;
+    uint8_t j;
     for(j=0;j<100;j++) {
       ct_beep_toggle();
       _delay_loop_2(1000);
@@ -177,9 +177,9 @@ void ct_init_mplex(void)
 	PORTB |= CT_MPLEX_MCU_XPT_COPY_XPT;
 }
 
-void ct_set_mplex(u08 mode)
+void ct_set_mplex(uint8_t mode)
 {
-	u08 pb = PORTB & ~CT_MPLEX_MASK;
+	uint8_t pb = PORTB & ~CT_MPLEX_MASK;
 	PORTB = pb | mode;
 }
 
@@ -196,12 +196,12 @@ void ct_xport_init_rts_cts(void)
   PORTD &=  ~0x80; // low active: allow sending from XPort
 }
 
-u08 ct_xport_get_rts(void)
+uint8_t ct_xport_get_rts(void)
 {
   return (PINB & 0x08) == 0x08;
 }
 
-void ct_xport_set_cts(u08 on)
+void ct_xport_set_cts(uint8_t on)
 {
   if(on)
     PORTD &= ~0x80; // low active: allow sending from XPort
@@ -220,12 +220,12 @@ void ct_com_init_rts_cts(void)
   PORTB &=  ~0x10; // low active!
 }
 
-u08 ct_com_get_rts(void)
+uint8_t ct_com_get_rts(void)
 {
   return (PIND & 0x04) == 0x00;
 }
 
-void ct_com_set_cts(u08 on)
+void ct_com_set_cts(uint8_t on)
 {
   if(on)
     PORTB &= ~0x10; // low active: allow sending from XPort
@@ -249,7 +249,7 @@ void ct_com_set_cts(u08 on)
 
 static void ct_lcd_wait_busy(void)
 {
-  u08 data = CT_LCD_D_BIT;
+  uint8_t data = CT_LCD_D_BIT;
   LCD_NOP;
   while (data) { // 67.8ns
     PORTC = DPC_T(CT_LCD_RW_BIT,(CT_LCD_RW_BIT|CT_LCD_E_BIT)); // RS=0, RW=1, E=0  // dauer ca. 4 takte
@@ -278,8 +278,8 @@ static void ct_lcd_wait_busy(void)
 }
 
 // 1 takt =~ 67.8ns bei 14.7456MHz
-void ct_lcd_u08(u08 cmd, u08 cmdOrData){
-  u08 i;
+void ct_lcd_uint8_t(uint8_t cmd, uint8_t cmdOrData){
+  uint8_t i;
 
   ct_lcd_wait_busy();
 
@@ -307,7 +307,7 @@ void ct_lcd_u08(u08 cmd, u08 cmdOrData){
   PORTC = DPC | cmdOrData;
 }
 
-static const u08 lcd_off[4] = { 0x00,0x40,0x14,0x54 };
+static const uint8_t lcd_off[4] = { 0x00,0x40,0x14,0x54 };
 
 void ct_lcd_init(void)
 {
@@ -318,16 +318,16 @@ void ct_lcd_init(void)
 }
 
 #if 0
-void cd_lcd_mode(u08 mode)
+void cd_lcd_mode(uint8_t mode)
 {
   ct_lcd_cmd(mode);
 }
 #endif
 
 #if 0
-void ct_lcd_line(u08 y,u08 *line,u08 len)
+void ct_lcd_line(uint8_t y,uint8_t *line,uint8_t len)
 {
-  u08 i;
+  uint8_t i;
 
   ct_lcd_cmd(CT_LCD_CMD_ADDR + lcd_off[y]);
   for(i=0;i<len;i++)
@@ -335,13 +335,13 @@ void ct_lcd_line(u08 y,u08 *line,u08 len)
 }
 #endif
 
-void ct_lcd_pos(u08 x,u08 y)
+void ct_lcd_pos(uint8_t x,uint8_t y)
 {
   ct_lcd_cmd(CT_LCD_CMD_ADDR + lcd_off[y] + x);
 }
 
 #if 0
-void ct_lcd_string(u08 *str)
+void ct_lcd_string(uint8_t *str)
 {
   while(*str) {
     ct_lcd_data(*str);
@@ -357,10 +357,10 @@ void ct_lcd_string(u08 *str)
 #ifdef CT_BOARD_ADC
 
 // adc readout (code by Benjamin Benz/c't magazin)
-u16 ct_read_adc(u08 channel)
+uint16_t ct_read_adc(uint8_t channel)
 {
-  u08 oldDDRA  = DDRA;
-  u08 oldPORTA = PORTA;
+  uint8_t oldDDRA  = DDRA;
+  uint8_t oldPORTA = PORTA;
 
   // prepare for readout
   DDRA  &= ~ (1<<channel);
@@ -376,9 +376,9 @@ u16 ct_read_adc(u08 channel)
   while ( (ADCSRA & (1<<ADSC)) != 0){}
 
   // fetch value (first ADCL then ADCH!!)
-  u08 lo = ADCL;
-  u08 hi = ADCH;
-  u16 result= lo | (hi <<8);
+  uint8_t lo = ADCL;
+  uint8_t hi = ADCH;
+  uint16_t result= lo | (hi <<8);
 
   DDRA  = oldDDRA;
   PORTA = oldPORTA;
@@ -393,25 +393,25 @@ u16 ct_read_adc(u08 channel)
 #ifdef CT_BOARD_GPIO
 
 #define CP_PROC(NUM,DDR,PORT,BIT) \
-void ct_set_cp ## NUM ## _dir(u08 out) \
+void ct_set_cp ## NUM ## _dir(uint8_t out) \
 { \
   if(out) \
     DDR |=  (1<<BIT); \
   else \
     DDR &= ~(1<<BIT); \
 } \
-u08 ct_get_cp ## NUM ## _dir(void) \
+uint8_t ct_get_cp ## NUM ## _dir(void) \
 { \
   return (DDR & (1<<BIT)) == (1<<BIT); \
 } \
-void ct_set_cp ## NUM (u08 on) \
+void ct_set_cp ## NUM (uint8_t on) \
 { \
   if(on) \
     PORT |=  (1<<BIT); \
   else \
     PORT &= ~(1<<BIT); \
   } \
-u08 ct_get_cp ## NUM (void) \
+uint8_t ct_get_cp ## NUM (void) \
 { \
   return (PORT & (1<<BIT)) == (1<<BIT); \
 }

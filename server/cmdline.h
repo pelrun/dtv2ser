@@ -49,12 +49,12 @@
 
 // container for all arguments passed to a command
 typedef struct {
-  u08 arg_byte[CMDLINE_MAX_ARG_BYTE];
-  u16 arg_word[CMDLINE_MAX_ARG_WORD];
-  u32 arg_dword[CMDLINE_MAX_ARG_DWORD];
-  u08 num_byte;
-  u08 num_word;
-  u08 num_dword;
+  uint8_t arg_byte[CMDLINE_MAX_ARG_BYTE];
+  uint16_t arg_word[CMDLINE_MAX_ARG_WORD];
+  uint32_t arg_dword[CMDLINE_MAX_ARG_DWORD];
+  uint8_t num_byte;
+  uint8_t num_word;
+  uint8_t num_dword;
 } cmdline_args_t;
 
 // access the global command line args
@@ -69,14 +69,14 @@ extern cmdline_args_t cmdline_args;
 
 // structure to define a command
 typedef struct {
-  u08    len;             // length of command string
-  u08   *name;            // e.g.  "r"
-  u08   *args_pattern;    // use a sequence of b=byte,w=word,t=tribyte
+  uint8_t    len;             // length of command string
+  uint8_t   *name;            // e.g.  "r"
+  uint8_t   *args_pattern;    // use a sequence of b=byte,w=word,t=tribyte
   void (*execute_cmd)(void); // execute command
 } command_t;
 
 #define COMMAND(name,pattern,execute) \
-{ sizeof(name)-1,(u08*)name,(u08*)pattern,execute }
+{ sizeof(name)-1,(uint8_t*)name,(uint8_t*)pattern,execute }
 #define END_OF_COMMAND { 0,0,0,0 }
 
 // call this initially to setup the command line on startup

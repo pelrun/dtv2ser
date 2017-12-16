@@ -50,7 +50,7 @@ dtv_transfer_block_func_t current_dtv_transfer_block_func = 0;
 
 // ----- main transfer loop -----
 
-static u08 transfer_begin(u08 mode,u32 length)
+static uint8_t transfer_begin(uint8_t mode,uint32_t length)
 {
   // reset transfer state
   transfer_state.length  = 0;
@@ -58,7 +58,7 @@ static u08 transfer_begin(u08 mode,u32 length)
   transfer_state.result  = TRANSFER_OK;
 
   // begin host transfer
-  u08 result = current_host_transfer_funcs->begin_transfer(length);
+  uint8_t result = current_host_transfer_funcs->begin_transfer(length);
   if(result!=TRANSFER_OK) {
     transfer_state.result = result;
     return result;
@@ -72,7 +72,7 @@ static u08 transfer_begin(u08 mode,u32 length)
   return TRANSFER_OK;
 }
 
-static u08 transfer_end(u08 result,u32 total_length,u16 ms_time)
+static uint8_t transfer_end(uint8_t result,uint32_t total_length,uint16_t ms_time)
 {
   led_transmit_off();
 
@@ -87,9 +87,9 @@ static u08 transfer_end(u08 result,u32 total_length,u16 ms_time)
   return result;
 }
 
-u08 transfer_mem(u08 mode,u32 base,u32 length,u16 block_size)
+uint8_t transfer_mem(uint8_t mode,uint32_t base,uint32_t length,uint16_t block_size)
 {
-  u08 result = transfer_begin(mode,length);
+  uint8_t result = transfer_begin(mode,length);
   if(result!=TRANSFER_OK)
     return result;
 
@@ -97,16 +97,16 @@ u08 transfer_mem(u08 mode,u32 base,u32 length,u16 block_size)
   timer_10ms = 0;
 
   // block copy loop
-  u32 total_length = 0;
-  u08 toggle = 1;
+  uint32_t total_length = 0;
+  uint8_t toggle = 1;
   while(length) {
-    u16 offset = (u16)(base & 0x3fff);
-    u16 max_len = 0x4000 - offset;
-    u16 block_len = min(length,block_size);
-    u16 len = min(block_len,max_len);
+    uint16_t offset = (uint16_t)(base & 0x3fff);
+    uint16_t max_len = 0x4000 - offset;
+    uint16_t block_len = min(length,block_size);
+    uint16_t len = min(block_len,max_len);
 
     dtv_transfer_state.offset = offset;
-    dtv_transfer_state.bank   = (u08)(base >> 14);
+    dtv_transfer_state.bank   = (uint8_t)(base >> 14);
     dtv_transfer_state.length = len;
     dtv_transfer_state.crc16  = 0xffff;
 
@@ -122,7 +122,7 @@ u08 transfer_mem(u08 mode,u32 base,u32 length,u16 block_size)
       break;
 
     // update
-    u16 transfer_length = dtv_transfer_state.transfer_length;
+    uint16_t transfer_length = dtv_transfer_state.transfer_length;
     base   += transfer_length;
     length -= transfer_length;
     total_length += transfer_length;
@@ -145,9 +145,9 @@ u08 transfer_mem(u08 mode,u32 base,u32 length,u16 block_size)
                       timer_10ms);
 }
 
-u08 transfer_mem_block(u08 mode,u08 bank,u16 offset,u16 length)
+uint8_t transfer_mem_block(uint8_t mode,uint8_t bank,uint16_t offset,uint16_t length)
 {
-  u08 result = transfer_begin(mode,length);
+  uint8_t result = transfer_begin(mode,length);
   if(result!=TRANSFER_OK)
     return result;
 
@@ -166,16 +166,16 @@ u08 transfer_mem_block(u08 mode,u08 bank,u16 offset,u16 length)
 // ----- diagnose transfer functions ----------------------------------------
 #ifdef USE_DIAGNOSE
 
-u08 diagnose_dtv_send_block(void)
+uint8_t diagnose_dtv_send_block(void)
 {
-  u08 result;
-  u16 length = dtv_transfer_state.length;
+  uint8_t result;
+  uint16_t length = dtv_transfer_state.length;
 
-  u16 pos = 0;
-  u16 crc16 = dtv_transfer_state.crc16;
+  uint16_t pos = 0;
+  uint16_t crc16 = dtv_transfer_state.crc16;
   while(length) {
     // transfer byte from host
-    u08 data;
+    uint8_t data;
     result = current_host_transfer_funcs->transfer_byte(&data);
     if(result!=TRANSFER_OK)
       break;
@@ -192,14 +192,14 @@ u08 diagnose_dtv_send_block(void)
   return TRANSFER_OK;
 }
 
-u08 diagnose_dtv_recv_block(void)
+uint8_t diagnose_dtv_recv_block(void)
 {
-  u08 result;
-  u16 length = dtv_transfer_state.length;
-  u08 pattern = PARAM_BYTE(PARAM_BYTE_DIAGNOSE_PATTERN);
+  uint8_t result;
+  uint16_t length = dtv_transfer_state.length;
+  uint8_t pattern = PARAM_BYTE(PARAM_BYTE_DIAGNOSE_PATTERN);
 
-  u16 pos = 0;
-  u16 crc16 = dtv_transfer_state.crc16;
+  uint16_t pos = 0;
+  uint16_t crc16 = dtv_transfer_state.crc16;
   while(length) {
     // transfer pattern byte to host
     result = current_host_transfer_funcs->transfer_byte(&pattern);
@@ -220,20 +220,20 @@ u08 diagnose_dtv_recv_block(void)
 
 // ----- diagnose host transfer funcs -----
 
-u08 diagnose_host_mode = 0; // 0=read, 1=write, 2=verify
+uint8_t diagnose_host_mode = 0; // 0=read, 1=write, 2=verify
 
-static u08 diagnose_begin_transfer(u32 length)
+static uint8_t diagnose_begin_transfer(uint32_t length)
 { return TRANSFER_OK; }
 
-static u08 diagnose_end_transfer(u08 lastStatus)
+static uint8_t diagnose_end_transfer(uint8_t lastStatus)
 { return lastStatus; }
 
-static u08 diagnose_check_block(u16 crc16)
+static uint8_t diagnose_check_block(uint16_t crc16)
 { return TRANSFER_OK; }
 
-static u08 diagnose_transfer_byte(u08 *data)
+static uint8_t diagnose_transfer_byte(uint8_t *data)
 {
-  u08 pattern = PARAM_BYTE(PARAM_BYTE_DIAGNOSE_PATTERN);
+  uint8_t pattern = PARAM_BYTE(PARAM_BYTE_DIAGNOSE_PATTERN);
 
   if(diagnose_host_mode==DIAGNOSE_HOST_MODE_READ) {
     // read from host

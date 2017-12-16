@@ -34,19 +34,19 @@
 
 #ifdef USE_BOOT
 
-static u08 send_hilo_boot(u16 word)
+static uint8_t send_hilo_boot(uint16_t word)
 {
-  u08 lo = (u08)(word & 0xff);
-  u08 hi = (u08)(word >> 8);
-  u08 status = dtvlow_send_byte_boot(hi);
+  uint8_t lo = (uint8_t)(word & 0xff);
+  uint8_t hi = (uint8_t)(word >> 8);
+  uint8_t status = dtvlow_send_byte_boot(hi);
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte_boot(lo);
   return status;
 }
 
-static u08 dtvtrans_send_boot(u16 base,u16 length)
+static uint8_t dtvtrans_send_boot(uint16_t base,uint16_t length)
 {
-  u08 status;
+  uint8_t status;
 
   uart_start_reception();
 
@@ -55,21 +55,21 @@ static u08 dtvtrans_send_boot(u16 base,u16 length)
 
   dtvlow_state_send();
 
-  // 1. send start (u16)
+  // 1. send start (uint16_t)
   status = send_hilo_boot(base);
 
-  // 2. send end (u16)
-  u16 end = base + length - 1;
+  // 2. send end (uint16_t)
+  uint16_t end = base + length - 1;
   if(status==TRANSFER_OK)
     status = send_hilo_boot(end);
 
   // 3. data
-  u08 toggle = 1;
-  u08 chk = 0;
+  uint8_t toggle = 1;
+  uint8_t chk = 0;
   if(status==TRANSFER_OK) {
     while(length>0) {
       // get data from host if its still valid
-      u08 data;
+      uint8_t data;
       if(!uart_read(&data)) {
         status = TRANSFER_ERROR_CLIENT_TIMEOUT;
         break;
@@ -93,7 +93,7 @@ static u08 dtvtrans_send_boot(u16 base,u16 length)
     }
   }
 
-  // 4. check sum (u08)
+  // 4. check sum (uint8_t)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte_boot(chk);
 
@@ -113,12 +113,12 @@ static u08 dtvtrans_send_boot(u16 base,u16 length)
 
 void exec_boot_memory(void)
 {
-  u16 addr = CMDLINE_ARG_WORD(0);
-  u16 len  = CMDLINE_ARG_WORD(1);
+  uint16_t addr = CMDLINE_ARG_WORD(0);
+  uint16_t len  = CMDLINE_ARG_WORD(1);
 
   timer_10ms = 0;
 
-  u08 status = dtvtrans_send_boot(addr,len);
+  uint8_t status = dtvtrans_send_boot(addr,len);
 
   // setup transfer state
   transfer_state.ms_time = timer_10ms;

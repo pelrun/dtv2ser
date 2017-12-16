@@ -37,11 +37,11 @@
 
 // ----- internal tools -----
 
-static u08 send_lohi(u16 word)
+static uint8_t send_lohi(uint16_t word)
 {
-  u08 lo = (u08)(word & 0xff);
-  u08 hi = (u08)(word >> 8);
-  u08 status = dtvlow_send_byte(lo);
+  uint8_t lo = (uint8_t)(word & 0xff);
+  uint8_t hi = (uint8_t)(word >> 8);
+  uint8_t status = dtvlow_send_byte(lo);
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte(hi);
   return status;
@@ -49,41 +49,41 @@ static u08 send_lohi(u16 word)
 
 // ----- send mem block -----
 
-u08 dtvtrans_send_mem_block(void)
+uint8_t dtvtrans_send_mem_block(void)
 {
-  u08 status;
-  u16 len = dtv_transfer_state.length;
+  uint8_t status;
+  uint16_t len = dtv_transfer_state.length;
 
   dtvlow_state_send();
 
-  // 1. send cmd write (u08)
+  // 1. send cmd write (uint8_t)
   status = dtvlow_send_byte(0x02);
 
-  // 2. mode (u08)
+  // 2. mode (uint8_t)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte(dtv_transfer_state.mode);
 
-  // 3. bank (u08)
+  // 3. bank (uint8_t)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte(dtv_transfer_state.bank);
 
-  // 4. base (u16)
+  // 4. base (uint16_t)
   if(status==TRANSFER_OK)
     status = send_lohi(dtv_transfer_state.offset);
 
-  // 5. len (u16)
+  // 5. len (uint16_t)
   if(status==TRANSFER_OK)
     status = send_lohi(len);
 
   // 6. block data
-  u08 chk = 0;
-  u16 i=0;
-  u16 crc16 = dtv_transfer_state.crc16;
-  u08 host_status = TRANSFER_OK;
+  uint8_t chk = 0;
+  uint16_t i=0;
+  uint16_t crc16 = dtv_transfer_state.crc16;
+  uint8_t host_status = TRANSFER_OK;
   if(status==TRANSFER_OK) {
     while(i<len) {
       // get data from host if its still valid
-      u08 data;
+      uint8_t data;
       if(host_status==TRANSFER_OK) {
         host_status = current_host_transfer_funcs->transfer_byte(&data);
       } else {
@@ -105,14 +105,14 @@ u08 dtvtrans_send_mem_block(void)
   dtv_transfer_state.transfer_length = i;
   dtv_transfer_state.crc16 = crc16;
 
-  // 7. check sum (u08)
+  // 7. check sum (uint8_t)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte(chk);
 
   dtvlow_state_recv();
 
   // 8. recv check
-  u08 chk2 = 0;
+  uint8_t chk2 = 0;
   status = dtvlow_recv_byte(&chk2);
 
   dtvlow_state_off();
@@ -129,43 +129,43 @@ u08 dtvtrans_send_mem_block(void)
 
 // ----- receive mem block -----
 
-u08 dtvtrans_recv_mem_block(void)
+uint8_t dtvtrans_recv_mem_block(void)
 {
-  u08 status;
-  u16 len = dtv_transfer_state.length;
+  uint8_t status;
+  uint16_t len = dtv_transfer_state.length;
 
   dtvlow_state_send();
 
-  // 1. send cmd read (u08)
+  // 1. send cmd read (uint8_t)
   status = dtvlow_send_byte(0x01);
 
-  // 2. mode (u08)
+  // 2. mode (uint8_t)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte(dtv_transfer_state.mode);
 
-  // 3. bank (u08)
+  // 3. bank (uint8_t)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte(dtv_transfer_state.bank);
 
-  // 4. base (u16)
+  // 4. base (uint16_t)
   if(status==TRANSFER_OK)
     status = send_lohi(dtv_transfer_state.offset);
 
-  // 5. len (u16)
+  // 5. len (uint16_t)
   if(status==TRANSFER_OK)
     status = send_lohi(len);
 
   dtvlow_state_recv();
 
   // 6. recv data
-  u08 chk = 0;
-  u16 i = 0;
-  u16 crc16 = dtv_transfer_state.crc16;
-  u08 host_status = TRANSFER_OK;
+  uint8_t chk = 0;
+  uint16_t i = 0;
+  uint16_t crc16 = dtv_transfer_state.crc16;
+  uint8_t host_status = TRANSFER_OK;
   if(status==TRANSFER_OK) {
     while(i<len) {
       // recv byte
-      u08 data;
+      uint8_t data;
       status = dtvlow_recv_byte(&data);
       if(status!=TRANSFER_OK)
         break;
@@ -184,8 +184,8 @@ u08 dtvtrans_recv_mem_block(void)
   dtv_transfer_state.transfer_length = i;
   dtv_transfer_state.crc16 = crc16;
 
-  // 7. recv check sum (u08)
-  u08 chk2;
+  // 7. recv check sum (uint8_t)
+  uint8_t chk2;
   if(status==TRANSFER_OK)
     status = dtvlow_recv_byte(&chk2);
 
@@ -205,16 +205,16 @@ u08 dtvtrans_recv_mem_block(void)
 
 #ifdef USE_OLDCMD
 
-u08 dtvtrans_exec_mem(u16 addr)
+uint8_t dtvtrans_exec_mem(uint16_t addr)
 {
-  u08 status;
+  uint8_t status;
 
   dtvlow_state_send();
 
-  // 1. send exec mem cmd (u08)
+  // 1. send exec mem cmd (uint8_t)
   status = dtvlow_send_byte(0x03);
   if(status==TRANSFER_OK) {
-    // 2. send addr (u16)
+    // 2. send addr (uint16_t)
     status = send_lohi(addr);
   }
 
@@ -227,14 +227,14 @@ u08 dtvtrans_exec_mem(u16 addr)
 
 // ----- generic command -----
 
-u08 dtvtrans_command(u08 command,u08 in_size,u08 *in_buf,u08 out_size)
+uint8_t dtvtrans_command(uint8_t command,uint8_t in_size,uint8_t *in_buf,uint8_t out_size)
 {
-  u08 i,data[2],j;
+  uint8_t i,data[2],j;
 
   dtvlow_state_send();
 
   // 1. first send command byte
-  u08 status = dtvlow_send_byte(command);
+  uint8_t status = dtvlow_send_byte(command);
   if(status==TRANSFER_OK) {
 
     // 2. send arguments
@@ -255,7 +255,7 @@ u08 dtvtrans_command(u08 command,u08 in_size,u08 *in_buf,u08 out_size)
       dtvlow_state_recv();
 
       // variable size read: fetch size first
-      u08 size = out_size;
+      uint8_t size = out_size;
       if(out_size==DTVTRANS_CMD_VARARG) {
         status = dtvlow_recv_byte(&size);
 
