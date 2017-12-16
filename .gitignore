@@ -2,3 +2,5 @@
 *.elf
 *.hex
 *.pyc
+*.d
+*.o
