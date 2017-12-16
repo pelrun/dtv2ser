@@ -29,8 +29,6 @@ from dtv2sertool.app import app
 from dtv2sertool.bootstrap import Bootstrap
 
 def bootstrap(cmd,args,opts):
-  if not app.require_server_alive():
-    return False
 
   fast = True
   screen_code = False
