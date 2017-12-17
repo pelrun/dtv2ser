@@ -24,7 +24,10 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
+
+#include "board.h"
+
 #include "uart.h"
 #include "sertrans.h"
 #include "util.h"

@@ -53,44 +53,6 @@
 #ifndef DTVLOW_H
 #define DTVLOW_H
 
-#ifdef HAVE_ctboard
-
-#define DTVLOW_DATA_MASK     0x70
-#define DTVLOW_CLK_MASK      0x80
-#define DTVLOW_DATACLK_PORT  PORTC
-#define DTVLOW_DATACLK_PIN   PINC
-#define DTVLOW_DATACLK_DDR   DDRC
-#define DTVLOW_DATA_SHIFT    4
-
-#define DTVLOW_ACK_MASK      0x04
-#define DTVLOW_RESET_MASK    0x08
-#define DTVLOW_ACKRESET_PORT PORTA
-#define DTVLOW_ACKRESET_PIN  PINA
-#define DTVLOW_ACKRESET_DDR  DDRA
-
-#else
-#if defined(HAVE_cvm8board) || defined(HAVE_arduino2009)
-
-#define DTVLOW_DATA_MASK     0x07
-#define DTVLOW_CLK_MASK      0x08
-#define DTVLOW_DATACLK_PORT  PORTC
-#define DTVLOW_DATACLK_PIN   PINC
-#define DTVLOW_DATACLK_DDR   DDRC
-#define DTVLOW_DATA_SHIFT    0
-
-#define DTVLOW_ACK_MASK      0x10
-#define DTVLOW_RESET_MASK    0x20
-#define DTVLOW_ACKRESET_PORT PORTC
-#define DTVLOW_ACKRESET_PIN  PINC
-#define DTVLOW_ACKRESET_DDR  DDRC
-
-#else
-
-#error Unknown Board
-
-#endif
-#endif
-
 // reset mode
 #define DTVLOW_RESET_NORMAL            0x00
 #define DTVLOW_RESET_ENTER_DTVTRANS    0x01

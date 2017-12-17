@@ -24,6 +24,10 @@
  *
  */
 
+#include <stdint.h>
+
+#include "board.h"
+
 #include "util.h"
 
 // convert to hex

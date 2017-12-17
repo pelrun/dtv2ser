@@ -24,6 +24,10 @@
  *
  */
 
+#include <stdint.h>
+
+#include "board.h"
+
 #include "cmdtable.h"
 
 #include "command.h"

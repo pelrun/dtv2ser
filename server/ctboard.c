@@ -24,7 +24,7 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -52,7 +52,7 @@ void ct_delay(uint8_t num)
 static uint8_t key_state;
 #endif
 
-void ct_init_keyled(void)
+void led_init(void)
 {
   DDRD |= CT_LED_ALL;	// led output
   PORTD |= CT_LED_ALL;
@@ -61,12 +61,12 @@ void ct_init_keyled(void)
 #endif
 }
 
-void ct_led_on(uint8_t led_mask)
+void led_on(uint8_t led_mask)
 {
   PORTD &= ~led_mask;
 }
 
-void ct_led_off(uint8_t led_mask)
+void led_off(uint8_t led_mask)
 {
   PORTD |= led_mask;
 }
@@ -140,7 +140,7 @@ uint8_t ct_get_key_press()
 
 #ifdef USE_BEEPER
 
-void ct_init_beeper(void)
+void beeper_init(void)
 {
   DDRA|=0x10; // PA4 (beeper) is output
 }
@@ -151,7 +151,7 @@ static void ct_beep_toggle(void)
   PORTA = PORTA ^ 0x10;
 }
 
-void ct_beep(uint8_t num)
+void beeper_beep(uint8_t num)
 {
   uint8_t i;
   for(i=0;i<num;i++) {
@@ -278,7 +278,7 @@ static void ct_lcd_wait_busy(void)
 }
 
 // 1 takt =~ 67.8ns bei 14.7456MHz
-void ct_lcd_uint8_t(uint8_t cmd, uint8_t cmdOrData){
+void lcd_byte(uint8_t cmd, uint8_t cmdOrData){
   uint8_t i;
 
   ct_lcd_wait_busy();
@@ -309,7 +309,7 @@ void ct_lcd_uint8_t(uint8_t cmd, uint8_t cmdOrData){
 
 static const uint8_t lcd_off[4] = { 0x00,0x40,0x14,0x54 };
 
-void ct_lcd_init(void)
+void lcd_init(void)
 {
   DDRC = DRC | 7;
   ct_lcd_cmd(CT_LCD_CMD_INIT);
@@ -335,7 +335,7 @@ void ct_lcd_line(uint8_t y,uint8_t *line,uint8_t len)
 }
 #endif
 
-void ct_lcd_pos(uint8_t x,uint8_t y)
+void lcd_pos(uint8_t x,uint8_t y)
 {
   ct_lcd_cmd(CT_LCD_CMD_ADDR + lcd_off[y] + x);
 }
@@ -357,7 +357,7 @@ void ct_lcd_string(uint8_t *str)
 #ifdef CT_BOARD_ADC
 
 // adc readout (code by Benjamin Benz/c't magazin)
-uint16_t ct_read_adc(uint8_t channel)
+uint16_t adc_read(uint8_t channel)
 {
   uint8_t oldDDRA  = DDRA;
   uint8_t oldPORTA = PORTA;

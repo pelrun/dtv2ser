@@ -24,10 +24,12 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+
+#include "board.h"
 
 #include "uart.h"
 #include "timer.h"
@@ -49,52 +51,6 @@
 #define TXC    TXC0
 #define DOR    DOR0
 #define PE     UPE0
-
-#endif
-
-// ========== arduino2009 ===================================================
-
-#ifdef HAVE_arduino2009
-
-#include "arduino2009.h"
-
-#define uart_init_extra()   // not required
-#define uart_init_rts_cts() ard2009_rts_cts_init()
-#define uart_set_cts(x)     ard2009_set_cts(x)
-#define uart_get_rts()      ard2009_get_rts()
-
-#endif
-
-// ========== cvm8board =====================================================
-
-#ifdef HAVE_cvm8board
-
-#include "cvm8board.h"
-
-#define uart_init_extra()   // not required
-#define uart_init_rts_cts() cvm8_rts_cts_init()
-#define uart_set_cts(x)     cvm8_set_cts(x)
-#define uart_get_rts()      cvm8_get_rts()
-
-#endif
-
-// ========== ctboard =======================================================
-
-#ifdef HAVE_ctboard
-
-#include "ctboard.h"
-
-#ifdef USE_XPORT
-#define uart_init_extra()   ct_init_mplex(); ct_set_mplex(CT_MPLEX_MCU_XPT_COPY_XPT)
-#define uart_init_rts_cts() ct_xport_init_rts_cts()
-#define uart_set_cts(x)     ct_xport_set_cts(x)
-#define uart_get_rts()      ct_xport_get_rts()
-#else
-#define uart_init_extra()   ct_init_mplex(); ct_set_mplex(CT_MPLEX_COM_MCU_COPY_COM)
-#define uart_init_rts_cts() ct_com_init_rts_cts()
-#define uart_set_cts(x)     ct_com_set_cts(x)
-#define uart_get_rts()      ct_com_get_rts()
-#endif
 
 #endif
 

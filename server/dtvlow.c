@@ -24,10 +24,12 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
 
 #include <avr/io.h>
 #include <util/delay.h>
+
+#include "board.h"
 
 #include "timer.h"
 #include "dtvlow.h"

@@ -24,14 +24,14 @@
  *
  */
 
+#include <stdint.h>
 #include <avr/interrupt.h>
 
-#include "global.h"
 #include "arduino2009.h"
 
 // Board init
 
-void ard2009_board_init(void)
+void board_init(void)
 {
    // disable watchdog
    cli();
@@ -43,7 +43,7 @@ void ard2009_board_init(void)
 
 // LEDs are PB0..PB2
 
-void ard2009_led_init(void)
+void led_init(void)
 {
   DDRB  |= 0x07;
   PORTB |= 0x07;
@@ -51,7 +51,7 @@ void ard2009_led_init(void)
 
 // RTS & CTS
 
-void ard2009_rts_cts_init(void)
+void uart_init_rts_cts(void)
 {
   DDRD  |= 0x04; // PD2 is output
   PORTD |= 0x0c;

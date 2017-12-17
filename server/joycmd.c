@@ -24,7 +24,12 @@
  *
  */
 
+#include <stdint.h>
+
+#include "board.h"
+
 #include "joycmd.h"
+
 #include "joy.h"
 #include "display.h"
 #include "timer.h"

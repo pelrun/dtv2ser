@@ -27,8 +27,6 @@
 #ifndef TRANSFER_H
 #define TRANSFER_H
 
-#include "global.h"
-
 // ----- transfer status -----
 #define TRANSFER_OK                 0x00
 // dtvlow errors

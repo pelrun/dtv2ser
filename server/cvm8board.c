@@ -24,12 +24,16 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
+
 #include "cvm8board.h"
+
+
+void board_init(void) {}
 
 // LEDs are PB0..PB2
 
-void cvm8_led_init(void)
+void led_init(void)
 {
   DDRB  |= 0x07;
   PORTB |= 0x07;
@@ -37,7 +41,7 @@ void cvm8_led_init(void)
 
 // RTS & CTS
 
-void cvm8_rts_cts_init(void)
+void uart_init_rts_cts(void)
 {
   DDRD  |= 0x04; // PD2 is output
   PORTD |= 0x0c;

@@ -27,8 +27,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "global.h"
-
 // ----- conversion functions -----
 // convert nybble to hex char
 extern uint8_t nybble_to_hex(uint8_t in);

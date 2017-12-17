@@ -27,8 +27,6 @@
 #ifndef CMDLINE_H
 #define CMDLINE_H
 
-#include "global.h"
-
 // max number of chars in a command line
 #define CMDLINE_SIZE 40
 

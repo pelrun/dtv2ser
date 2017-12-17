@@ -27,15 +27,11 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include "global.h"
-
 // ========== arduino2009 ===================================================
 
 #ifdef HAVE_arduino2009
 
 #include "arduino2009.h"
-
-#define board_init()          ard2009_board_init()
 
 #endif
 
@@ -43,7 +39,7 @@
 
 #ifdef HAVE_cvm8board
 
-#define board_init()
+#include "cvm8board.h"
 
 #endif
 
@@ -51,7 +47,7 @@
 
 #ifdef HAVE_ctboard
 
-#define board_init()
+#include "ctboard.h"
 
 #endif // HAVE_ctboard
 

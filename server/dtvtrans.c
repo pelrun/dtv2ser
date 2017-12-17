@@ -24,9 +24,11 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
 
 #include <util/crc16.h>
+
+#include "board.h"
 
 #include "dtvlow.h"
 #include "dtvtrans.h"

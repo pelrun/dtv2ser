@@ -27,27 +27,7 @@
 #ifndef JOY_H
 #define JOY_H
 
-#include "global.h"
-
 #ifdef USE_JOYSTICK
-
-#if defined(HAVE_cvm8board) || defined(HAVE_arduino2009)
-
-#define JOY_PORT        PORTC
-#define JOY_DDR         DDRC
-#define JOY_MASK        0x1f
-
-#define JOY_MASK_UP     0x01
-#define JOY_MASK_DOWN   0x02
-#define JOY_MASK_LEFT   0x04
-#define JOY_MASK_RIGHT  0x08
-#define JOY_MASK_FIRE   0x10
-
-#else
-
-#error Unsupported Board
-
-#endif
 
 void joy_begin(void);
 void joy_out(uint8_t value);

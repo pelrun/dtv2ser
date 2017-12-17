@@ -69,6 +69,21 @@
 	7		IO17				(XP_CP3/CTS wenn PB2==1)
 */
 
+#define DTVLOW_DATA_MASK     0x70
+#define DTVLOW_CLK_MASK      0x80
+#define DTVLOW_DATACLK_PORT  PORTC
+#define DTVLOW_DATACLK_PIN   PINC
+#define DTVLOW_DATACLK_DDR   DDRC
+#define DTVLOW_DATA_SHIFT    4
+
+#define DTVLOW_ACK_MASK      0x04
+#define DTVLOW_RESET_MASK    0x08
+#define DTVLOW_ACKRESET_PORT PORTA
+#define DTVLOW_ACKRESET_PIN  PINA
+#define DTVLOW_ACKRESET_DDR  DDRA
+
+void board_init(void) {}
+
 // ---------- DELAY ---------------------------------------------------------
 #ifdef CT_BOARD_DELAY
 #define CT_DELAY_100MS	5
@@ -84,9 +99,23 @@ void ct_delay(uint8_t num);
 #define CT_LED_RED      0x08
 #define CT_LED_ALL      0x78
 
-void ct_init_keyled(void);
-void ct_led_on(uint8_t led_mask);
-void ct_led_off(uint8_t led_mask);
+void led_init(void);
+void led_on(uint8_t led_mask);
+void led_off(uint8_t led_mask);
+
+// 1. Ready LED (green)
+#define led_ready_on()      led_on(CT_LED_GREEN)
+#define led_ready_off()     led_off(CT_LED_GREEN)
+
+// 2. Error LED (red)
+#define led_error_on()      led_on(CT_LED_RED)
+#define led_error_off()     led_off(CT_LED_RED)
+
+// 3. Transmit LED (yellow)
+#define led_transmit_on()   led_on(CT_LED_YELLOW)
+#define led_transmit_off()  led_off(CT_LED_YELLOW)
+
+
 //void ct_led_bits(uint8_t num);
 #ifdef CT_BOARD_KEYS
 uint8_t ct_get_key_press(void);
@@ -94,8 +123,8 @@ uint8_t ct_get_key_press(void);
 
 // ---------- BEEPER --------------------------------------------------------
 #ifdef USE_BEEPER
-void ct_init_beeper(void);
-void ct_beep(uint8_t ms);
+void beeper_init(void);
+void beeper_beep(uint8_t ms);
 #endif
 
 // ---------- UART MPLEX ----------------------------------------------------
@@ -133,24 +162,24 @@ void ct_set_mplex(uint8_t mode);
 #define CT_LCD_E_BIT            0x04
 #define CT_LCD_D_BIT            0x08
 
-void ct_lcd_init(void);
-void ct_lcd_uint8_t(uint8_t cmd, uint8_t cmdOrData);
-void ct_lcd_pos(uint8_t x,uint8_t y);
+void lcd_init(void);
+void lcd_byte(uint8_t cmd, uint8_t cmdOrData);
+void lcd_pos(uint8_t x,uint8_t y);
 //void ct_lcd_mode(uint8_t mode);
 //void ct_lcd_line(uint8_t y,uint8_t *line,uint8_t len);
 //void ct_lcd_string(uint8_t *str);
 
-#define ct_lcd_data(a)        ct_lcd_uint8_t(a, CT_LCD_RS_BIT)
-#define ct_lcd_cmd(a)         ct_lcd_uint8_t(a, 0)
+#define lcd_data(a)        ct_lcd_uint8_t(a, CT_LCD_RS_BIT)
+#define lcd_cmd(a)         ct_lcd_uint8_t(a, 0)
 
-#define ct_lcd_clear()        ct_lcd_cmd(CT_LCD_CMD_CLEAR)
-#define ct_lcd_char(b)        ct_lcd_data(b)
+#define lcd_clear()        ct_lcd_cmd(CT_LCD_CMD_CLEAR)
+#define lcd_char(b)        ct_lcd_data(b)
 
 #endif
 
 // ---------- ADC -----------------------------------------------------------
 #ifdef CT_BOARD_ADC
-uint16_t ct_read_adc(uint8_t channel);
+uint16_t adc_read(uint8_t channel);
 #endif
 
 // ---------- GPIO ----------------------------------------------------------
@@ -167,10 +196,18 @@ CP_DEF(3)
 
 // ---------- RTS/CTS -------------------------------------------------------
 #ifdef USE_XPORT
-void ct_xport_init_rts_cts(void);
+#define uart_init_extra()   ct_init_mplex(); ct_set_mplex(CT_MPLEX_MCU_XPT_COPY_XPT)
+#define uart_init_rts_cts() ct_xport_init_rts_cts()
+#define uart_set_cts(x)     ct_xport_set_cts(x)
+#define uart_get_rts()      ct_xport_get_rts()
+#void ct_xport_init_rts_cts(void);
 uint8_t ct_xport_get_rts(void);
 void ct_xport_set_cts(uint8_t on);
 #else
+#define uart_init_extra()   ct_init_mplex(); ct_set_mplex(CT_MPLEX_COM_MCU_COPY_COM)
+#define uart_init_rts_cts() ct_com_init_rts_cts()
+#define uart_set_cts(x)     ct_com_set_cts(x)
+#define uart_get_rts()      ct_com_get_rts()
 void ct_com_init_rts_cts(void);
 uint8_t ct_com_get_rts(void);
 void ct_com_set_cts(uint8_t on);

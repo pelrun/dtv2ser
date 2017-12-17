@@ -24,10 +24,13 @@
  *
  */
 
-#include "param.h"
-
+#include <stdint.h>
 #include <avr/eeprom.h>
 #include <util/crc16.h>
+
+#include "board.h"
+
+#include "param.h"
 
 // eeprom parameters
 parameters_t eeprom_parameters EEMEM;

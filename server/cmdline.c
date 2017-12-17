@@ -24,7 +24,12 @@
  *
  */
 
+#include <stdint.h>
+
+#include "board.h"
+
 #include "cmdline.h"
+
 #include "cmdtable.h"
 #include "uart.h"
 #include "uartutil.h"

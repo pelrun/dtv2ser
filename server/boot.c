@@ -24,6 +24,10 @@
  *
  */
 
+#include <stdint.h>
+
+#include "board.h"
+
 #include "boot.h"
 
 #include "dtvlow.h"

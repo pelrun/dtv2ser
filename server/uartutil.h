@@ -27,8 +27,6 @@
 #ifndef UARTUTIL_H
 #define UARTUTIL_H
 
-#include "global.h"
-
 // send a c string
 uint8_t uart_send_string(uint8_t *data);
 // send data

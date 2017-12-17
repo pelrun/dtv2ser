@@ -24,9 +24,11 @@
  *
  */
 
-#include "joy.h"
+#include <stdint.h>
 
-#include <avr/io.h>
+#include "board.h"
+
+#include "joy.h"
 
 #ifdef USE_JOYSTICK
 

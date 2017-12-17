@@ -24,6 +24,10 @@
  *
  */
 
+#include <stdint.h>
+
+#include "board.h"
+
 #include "command.h"
 #include "display.h"
 #include "dtvlow.h"

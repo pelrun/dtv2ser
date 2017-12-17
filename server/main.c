@@ -24,7 +24,10 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
+
+#include "board.h"
+
 #include "display.h"
 #include "cmdline.h"
 #include "uart.h"
@@ -32,7 +35,6 @@
 #include "timer.h"
 #include "dtvlow.h"
 #include "param.h"
-#include "board.h"
 
 int main (void){
   // board init. e.g. switch off watchdog

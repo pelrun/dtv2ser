@@ -24,7 +24,12 @@
  *
  */
 
+#include <stdint.h>
+
+#include "board.h"
+
 #include "display.h"
+
 #include "util.h"
 
 #ifdef USE_LCD

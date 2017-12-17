@@ -27,8 +27,6 @@
 #ifndef PARAM_H
 #define PARAM_H
 
-#include "global.h"
-
 // --- 8 bit parameters ---
 
 // 0: dtvlow: how long to wait before reading from DTV

@@ -27,8 +27,6 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "global.h"
-
 // init timers
 void timer_init(void);
 

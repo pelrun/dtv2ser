@@ -24,9 +24,10 @@
  *
  */
 
-#include "global.h"
-
+#include <stdint.h>
 #include <util/crc16.h>
+
+#include "board.h"
 
 #include "transfer.h"
 #include "display.h"

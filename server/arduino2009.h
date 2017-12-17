@@ -36,27 +36,65 @@
 #ifndef ARDUINO2009BOARD_H
 #define ARDUINO2009BOARD_H
 
-#include "global.h"
 #include <avr/io.h>
 
+#define DTVLOW_DATA_MASK     0x07
+#define DTVLOW_CLK_MASK      0x08
+#define DTVLOW_DATACLK_PORT  PORTC
+#define DTVLOW_DATACLK_PIN   PINC
+#define DTVLOW_DATACLK_DDR   DDRC
+#define DTVLOW_DATA_SHIFT    0
+
+#define DTVLOW_ACK_MASK      0x10
+#define DTVLOW_RESET_MASK    0x20
+#define DTVLOW_ACKRESET_PORT PORTC
+#define DTVLOW_ACKRESET_PIN  PINC
+#define DTVLOW_ACKRESET_DDR  DDRC
+
+#define JOY_PORT        PORTC
+#define JOY_DDR         DDRC
+#define JOY_MASK        0x1f
+
+#define JOY_MASK_UP     0x01
+#define JOY_MASK_DOWN   0x02
+#define JOY_MASK_LEFT   0x04
+#define JOY_MASK_RIGHT  0x08
+#define JOY_MASK_FIRE   0x10
+
 // ----- BOARD -----
-void ard2009_board_init(void);
+void board_init(void);
 
 // ----- LEDs -----
 // init leds
-void ard2009_led_init(void);
+void led_init(void);
+
 // set led given by mask
-#define ard2009_led_on(mask)       { PORTB &= ~mask; }
+#define led_on(mask)       { PORTB &= ~mask; }
 // set led off
-#define ard2009_led_off(mask)      { PORTB |= mask; }
+#define led_off(mask)      { PORTB |= mask; }
+
+// 1. Ready LED (green)
+#define led_ready_on()      led_on(1)
+#define led_ready_off()     led_off(1)
+
+// 2. Error LED (red)
+#define led_error_on()      led_on(4)
+#define led_error_off()     led_off(4)
+
+// 3. Transmit LED (yellow)
+#define led_transmit_on()   led_on(2)
+#define led_transmit_off()  led_off(2)
+
 
 // ----- RTS & CTS -----
 // init rts,cts signalling
-void ard2009_rts_cts_init(void);
+void uart_init_rts_cts(void);
 // set cts value 1=on, 0=off
-#define ard2009_set_cts(on)    { if(on) PORTD &= ~0x04; else PORTD |=  0x04; }
+#define uart_set_cts(on)    { if(on) PORTD &= ~0x04; else PORTD |=  0x04; }
 // read rts value 1=on, 0=off
-#define ard2009_get_rts()      ((PIND & 0x08) == 0)
+#define uart_get_rts()      ((PIND & 0x08) == 0)
+
+#define uart_init_extra()
 
 #endif
 

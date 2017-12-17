@@ -24,10 +24,12 @@
  *
  */
 
-#include "global.h"
+#include <stdint.h>
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+
+#include "board.h"
 
 void timer_init(void)
 {
