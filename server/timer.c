@@ -31,48 +31,14 @@
 
 #include "board.h"
 
+#include "timer.h"
+
 void timer_init(void)
 {
   cli();
 
-  // ----- TIMER2 (8bit) -----
-  // 100us timer
-
-  // clear timer/counter on compare0 match
-#ifdef TCCR2A
-  TCCR2A = _BV(WGM21); // CTC
-  TCCR2B = _BV(CS21); // prescale 8
-#else
-  TCCR2 = _BV(WGM21) | _BV(CS21); // CTC + prescale 8
-#endif
-
-  // t_tick = prescale / F_CPPU = 8 / F_CPU
-  // how many ticks n until 100 us are reached?
-  //
-  // t_tick * n = 100 us
-  //
-  // -> n = 100 * F_CPU / ( prescaler * 1000000 )
-  // -> compare val m = n -1
-
-#define TIMER2_COMPARE_VAL ((100 * F_CPU) / (8 * 1000000)) - 1
-#ifdef OCR2A
-  OCR2A = TIMER2_COMPARE_VAL;
-#else
-  OCR2  = TIMER2_COMPARE_VAL;
-#endif
-
-  // reset timer
-  TCNT2  = 0x00;
-
-  // enable Output Compare 0 overflow interrupt
-#ifdef TIMSK2
-  TIMSK2 = _BV(OCIE2A);
-#else
-  TIMSK |= _BV(OCIE2);
-#endif
-
   // ----- TIMER1 (16bit) -----
-  // 10ms counter
+  // 1ms counter
 
   // set to CTC on OCR1A with prescale 8
   TCCR1A = 0x00;
@@ -82,14 +48,14 @@ void timer_init(void)
 #endif
 
   // t_tick = prescale / F_CPPU = 8 / F_CPU
-  // how many ticks n until 100 us are reached?
+  // how many ticks n until 1 ms is reached?
   //
-  // t_tick * n = 10 ms
+  // t_tick * n = 1 ms
   //
-  // -> n = 10 * F_CPU / ( prescaler * 1000 )
+  // -> n = 1 * F_CPU / ( prescaler * 1000 )
   // -> compare val m = n -1
 
-#define TIMER1_COMPARE_VAL  ((10 * F_CPU) / (8 * 1000)) - 1
+#define TIMER1_COMPARE_VAL  ((1 * F_CPU) / (8 * 1000)) - 1
 #ifdef OCR1A
   OCR1A = TIMER1_COMPARE_VAL;
 #else
@@ -110,27 +76,31 @@ void timer_init(void)
 }
 
 // timer counter
-volatile uint16_t timer_100us = 0;
-volatile uint16_t timer_10ms = 0;
-
-// timer2 compare A handler
-#ifdef TIMER2_COMPA_vect
-ISR(TIMER2_COMPA_vect)
-#else
-ISR(TIMER2_COMP_vect)
-#endif
-{
-  timer_100us++;
-}
+volatile uint16_t timer_1ms = 0;
 
 // timer1 compare A handler
 ISR(TIMER1_COMPA_vect)
 {
-  timer_10ms++;
+  timer_1ms++;
 }
 
-void timer_delay_10ms(uint16_t timeout)
-{ timer_10ms=0; while(timer_10ms<timeout); }
+void timer_delay_1ms(uint16_t timeout)
+{ 
+  uint16_t start = timer_now();
+  while((uint16_t)(timer_now()-start)<timeout);
+}
 
-void timer_delay_100us(uint16_t timeout)
-{ timer_100us=0; while(timer_100us<timeout); }
+uint8_t timer_expired(timeout_t *t)
+{
+  return (uint16_t)(timer_now() - t->start) > t->timeout;
+}
+
+uint16_t timer_now(void)
+{
+  uint16_t now;
+  // remember, 16-bit reads on AVR aren't atomic...
+  cli();
+  now = timer_1ms;
+  sei();
+  return now;
+}

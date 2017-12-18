@@ -30,19 +30,19 @@
 // init timers
 void timer_init(void);
 
-// a 100 Hz = 10ms timer
-// 16bit: 0,10ms...~10hours
-extern volatile uint16_t timer_10ms;
+// busy wait with 1ms timer
+void timer_delay_1ms(uint16_t timeout);
 
-// a 99.83ms ~ 100ms timer
-// 16bit: 0,100us...6.5s
-extern volatile uint16_t timer_100us;
+typedef struct {
+  uint16_t start;
+  uint16_t timeout;
+} timeout_t;
 
-// busy wait with 10ms timer
-extern void timer_delay_10ms(uint16_t timeout);
+#define TIMEOUT(x) { timer_now(), x }
 
-// busy wait with 100us timer
-extern void timer_delay_100us(uint16_t timeout);
+uint8_t timer_expired(timeout_t *t);
+
+uint16_t timer_now(void);
 
 #endif
 

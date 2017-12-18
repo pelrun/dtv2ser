@@ -43,7 +43,6 @@
 
 static uint8_t command;
 static uint8_t value;
-static uint16_t delay;
 
 void exec_joy_stream(void)
 {
@@ -79,9 +78,8 @@ void exec_joy_stream(void)
     }
     // wait command
     else if(command==JOY_COMMAND_WAIT) {
-      delay = value;
-      timer_10ms = 0;
-      while(timer_10ms<delay) {
+      timeout_t t = TIMEOUT(value*10);
+      while(!timer_expired(&t)) {
       }
     }
     else {

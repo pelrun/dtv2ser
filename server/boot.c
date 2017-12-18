@@ -120,12 +120,12 @@ void exec_boot_memory(void)
   uint16_t addr = CMDLINE_ARG_WORD(0);
   uint16_t len  = CMDLINE_ARG_WORD(1);
 
-  timer_10ms = 0;
+  uint32_t start = timer_now();
 
   uint8_t status = dtvtrans_send_boot(addr,len);
 
   // setup transfer state
-  transfer_state.ms_time = timer_10ms;
+  transfer_state.ms_time = timer_now() - start;
   transfer_state.result  = status;
 
   if(status!=TRANSFER_OK)

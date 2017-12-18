@@ -50,7 +50,7 @@ void dtvlow_reset_dtv(uint8_t mode)
   dtvlow_rst(0);
 
   // delay 10 ms
-  timer_delay_100us(pre_delay);
+  timer_delay_1ms(pre_delay);
 
   // 2.) ACK=0, D0=0 - magick knock sequence for dtvtrans
   //     ACK=0, D1=0 - bypass dtvmon
@@ -60,13 +60,13 @@ void dtvlow_reset_dtv(uint8_t mode)
   }
 
   // delay 10ms
-  timer_delay_100us(pre_delay);
+  timer_delay_1ms(pre_delay);
 
   // 3.) RST=1
   dtvlow_rst(1);
 
   // delay 1sec
-  timer_delay_10ms(delay);
+  timer_delay_1ms(delay);
 
   // 4.) ACK=1, Dx=1
   dtvlow_data(0b111);
@@ -77,9 +77,8 @@ static uint8_t wait_ack(uint8_t wait_value)
 {
   uint8_t status = 0;
 
-  uint16_t timeout = PARAM_WORD(PARAM_WORD_DTVLOW_WAIT_FOR_ACK_DELAY);
-  timer_100us = 0;
-  while(timer_100us<timeout) {
+  timeout_t t = TIMEOUT(PARAM_WORD(PARAM_WORD_DTVLOW_WAIT_FOR_ACK_DELAY));
+  while(!timer_expired(&t)) {
     uint8_t value = dtvlow_ack_get();
     if(value==wait_value) {
       status = 1;
@@ -91,10 +90,10 @@ static uint8_t wait_ack(uint8_t wait_value)
 
 uint8_t dtvlow_is_alive(uint16_t timeout)
 {
-  // delay in 100us between samples taken
+  // delay in 1ms between samples taken
   uint16_t idle    = PARAM_WORD(PARAM_WORD_IS_ALIVE_IDLE);
 
-  // sample ack signal and determine value: repeat * delay * 100us
+  // sample ack signal and determine value: repeat * delay * 1ms
   uint8_t repeat  = PARAM_BYTE(PARAM_BYTE_IS_ALIVE_REPEAT);
   uint8_t delay   = PARAM_BYTE(PARAM_BYTE_IS_ALIVE_DELAY);
 
@@ -105,19 +104,12 @@ uint8_t dtvlow_is_alive(uint16_t timeout)
   uint8_t ack;
 
   // until timeout occurs
-  timer_10ms = 0;
-  while(timer_10ms < timeout) {
+  timeout_t t = TIMEOUT(timeout*10);
+  while(!timer_expired(&t)) {
 
     // trigger a clock pulse depending on state
-    if((steps&1)==0) {
-      // set clk=0
-      dtvlow_clk(0);
-      ack = 0;
-    } else {
-      // set clk=1
-      dtvlow_clk(1);
-      ack = 1;
-    }
+    ack = steps&1;
+    dtvlow_clk(ack);
 
     // make sure the ack signal has and holds the value
     uint8_t i=0;
@@ -134,12 +126,12 @@ uint8_t dtvlow_is_alive(uint16_t timeout)
           return TRANSFER_OK;
       } else {
         // wait a bit
-        timer_delay_100us(delay);
+        timer_delay_1ms(delay);
       }
     }
 
     // wait a bit to check signal again
-    timer_delay_100us(idle);
+    timer_delay_1ms(idle);
   }
 
   return TRANSFER_ERROR_NOT_ALIVE;

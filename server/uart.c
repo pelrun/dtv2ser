@@ -147,10 +147,9 @@ void uart_start_reception(void)
 uint8_t uart_read(uint8_t *data)
 {
   // read for buffe to be filled
-  timer_100us = 0;
-  uint16_t timeout = PARAM_WORD(PARAM_WORD_SERIAL_READ_AVAIL_TIMEOUT);
+  timeout_t t = TIMEOUT(PARAM_WORD(PARAM_WORD_SERIAL_READ_AVAIL_TIMEOUT));
   while(uart_rx_start==uart_rx_end) {
-    if (timer_100us > timeout) {
+    if (timer_expired(&t)) {
       return 0;
     }
   }
@@ -184,14 +183,13 @@ uint8_t uart_send(uint8_t data)
 {
 #ifndef IGNORE_RTS
   // wait for RTS with timeout
-  timer_100us = 0;
-  uint16_t rts_timeout = PARAM_WORD(PARAM_WORD_SERIAL_RTS_TIMEOUT);
+  timeout_t t = TIMEOUT(PARAM_WORD(PARAM_WORD_SERIAL_RTS_TIMEOUT));
 
 #ifdef SHOW_WAIT_RTS
   led_ready_on();
 #endif
   while(uart_get_rts()==0) {
-    if(timer_100us > rts_timeout) {
+    if(timer_expired(&t)) {
 #ifdef SHOW_WAIT_RTS
       led_ready_off();
 #endif
@@ -204,10 +202,9 @@ uint8_t uart_send(uint8_t data)
 #endif
 
   // wait for transmitter to become ready
-  timer_100us = 0;
-  uint16_t timeout = PARAM_WORD(PARAM_WORD_SERIAL_SEND_READY_TIMEOUT);
+  timeout_t t = TIMEOUT(PARAM_WORD(PARAM_WORD_SERIAL_SEND_READY_TIMEOUT));
   while(!( UCSRA & (1<<UDRE))) {
-    if (timer_100us > timeout) {
+    if (timer_expired(&t)) {
       return 0;
     }
   }

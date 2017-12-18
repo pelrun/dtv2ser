@@ -64,11 +64,14 @@ void cmdline_init(void)
   uart_start_reception();
 }
 
+timeout_t t;
+
 static void cmdline_set_error(void)
 {
   led_error_on();
   cmdline_error = 1;
-  timer_10ms = 0;
+  t.start = timer_now();
+  t.timeout = PARAM_WORD(PARAM_WORD_ERROR_CONDITION_DELAY);
 }
 
 // ----- cmdline_handle -----
@@ -121,8 +124,7 @@ void cmdline_handle(void)
   }
 
   // disable error led?
-  uint16_t timeout = PARAM_WORD(PARAM_WORD_ERROR_CONDITION_DELAY);
-  if(cmdline_error && (timer_10ms > timeout)) {
+  if(cmdline_error && timer_expired(&t)) {
     led_error_off();
     cmdline_error = 0;
   }

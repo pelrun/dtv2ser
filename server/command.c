@@ -52,7 +52,7 @@ void error_condition(void)
   // do some blinking
   uint8_t num = PARAM_BYTE(PARAM_BYTE_ERROR_CONDITION_LOOPS);
   for(uint8_t i=0;i<num;i++) {
-    timer_delay_10ms(PARAM_WORD(PARAM_WORD_ERROR_CONDITION_DELAY));
+    timer_delay_1ms(PARAM_WORD(PARAM_WORD_ERROR_CONDITION_DELAY));
     toggle ^= 1;
     if(toggle) {
       led_error_on();
