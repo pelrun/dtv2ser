@@ -53,17 +53,12 @@ void exec_joy_stream(void)
   joy_begin();
 
   uint8_t result = JOY_COMMAND_OK;
-  uint8_t need_cmd = 1;
   uint8_t led_on = 0;
   while(1) {
-    if(need_cmd) {
-      // wait for next command
-      if(!uart_read(&command)) {
-        result = JOY_COMMAND_ERROR;
-        break;
-      }
-    } else {
-      need_cmd = 1;
+    // wait for next command
+    if(!uart_read(&command)) {
+      result = JOY_COMMAND_ERROR;
+      break;
     }
 
     // extract command and value
@@ -90,19 +85,6 @@ void exec_joy_stream(void)
       delay = value;
       timer_10ms = 0;
       while(timer_10ms<delay) {
-        // while waiting fetch the next command
-        if(need_cmd) {
-          if(uart_read_data_available()) {
-            if(uart_read(&command)) {
-              need_cmd = 0;
-            }
-          }
-        }
-      }
-      // no command arrived while waiting -> error
-      if(need_cmd) {
-        result = JOY_COMMAND_ERROR;
-        break;
       }
     }
   }
