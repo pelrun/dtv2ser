@@ -252,12 +252,12 @@ class Transfer:
     # send transfer mode
     result = self.set_transfer_mode(mode)
     if result != STATUS_OK:
-      return result
+      return (result,'')
 
     # ensure block size
     result = self.ensure_block_size(block_size)
     if result != STATUS_OK:
-      return result
+      return (result,'')
 
     # send command
     result = self.cmdline.do_command(cmd)
@@ -267,7 +267,7 @@ class Transfer:
     # download data
     (result,duration,data) = self.con.receive_block(start,length,block_size,callback=callback)
     if result != STATUS_OK:
-      return result
+      return (result,data)
 
     # check transfer result
     result,server_time = self.wait_for_transfer_result()
