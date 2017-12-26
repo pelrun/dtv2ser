@@ -124,9 +124,6 @@ class Command:
     result = self.cmdline.do_command("a%04x" % tms)
     if result != STATUS_OK:
       return result
-    result = self.cmdline.wait_for_server(timeout)
-    if result != STATUS_OK:
-      return result
     return self.cmdline.get_status_byte()
 
   def lohi(self,addr):

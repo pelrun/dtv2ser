@@ -33,10 +33,6 @@ class CmdLine:
     """Setup command line handler with connection object"""
     self.con = con
 
-  def wait_for_server(self,timeout):
-    """Pass on to connection"""
-    return self.con.wait_for_server(timeout)
-
   # ----- read result of server -----
 
   def get_status_byte(self):
@@ -127,16 +123,10 @@ class CmdLine:
     Returns result code
     """
 
-    # wait for server
-    result = self.con.wait_for_server()
-    if result != STATUS_OK:
-      return result
-
     # send command
     result = self.con.send_data(cmd + '\n')
     if result != STATUS_OK:
       return result
-
     # exepct parse result
     (result,cmdline_result) = self.get_byte()
     if result != STATUS_OK:

@@ -71,19 +71,6 @@ class SerCon:
     """
     return self.valid and self.ser.isOpen()
 
-  def wait_for_server(self,timeout=0,sleep=0.1):
-    """Wait for server to become ready.
-    Returns result code.
-    """
-    if timeout == 0:
-      timeout = self.ready_timeout
-    steps = int(timeout / sleep)
-    for t in xrange(steps):
-      if self.ser.getCTS():
-        return STATUS_OK
-      time.sleep(sleep)
-    return CLIENT_ERROR_SERVER_TIMEOUT
-
   # ----- basic I/O -----
 
   def receive_data(self,length):
@@ -249,7 +236,7 @@ class SerCon:
         break;
 
       # got an error byte?
-      if self.ser.inWaiting() > 0:
+      if self.ser.in_waiting > 0:
         break
 
       pos += put_len
@@ -284,11 +271,6 @@ class SerCon:
     # begin upload
     start_time = time.time()
 
-    # first wait for CTS
-    result = self.wait_for_server(sleep=0.01)
-    if result != STATUS_OK:
-      return result,0
-
     # get start byte
     status,start_byte = self.receive_data(1)
     if status != STATUS_OK:
@@ -303,13 +285,8 @@ class SerCon:
     for pos in xrange(length):
       callback(pos)
 
-      # wait for CTS
-      result = self.wait_for_server(sleep=0.01)
-      if result != STATUS_OK:
-        break
-
       # already replied? (with error status)
-      if self.ser.inWaiting():
+      if self.ser.in_waiting > 0:
         break
 
       # now send data
@@ -348,8 +325,6 @@ class SerCon:
     """Send a stream of bytes as a joy stream.
       First you issue a 'js' joy stream command and then this routine is
       called to send the joy stream command bytes.
-      The joy stream has to wait for CTS as this signal is set if a
-      stream command takes some time.
       You must terminate the stream with 0x80 (END)
       Returns result,time
     """
@@ -357,10 +332,7 @@ class SerCon:
     # begin upload
     start_time = time.time()
 
-    # first wait for CTS
-    result = self.wait_for_server(sleep=0.01)
-    if result != STATUS_OK:
-      return result,0
+    expected_duration = 0.0
 
     # get start byte
     status,start_byte = self.receive_data(1)
@@ -375,11 +347,6 @@ class SerCon:
       c = data[pos]
       callback(pos)
 
-      # wait for CTS
-      result = self.wait_for_server(sleep=0.01)
-      if result != STATUS_OK:
-        return result,0
-
       # send a joy stream command
       result = self.send_data(c)
       if result != STATUS_OK:
@@ -389,9 +356,17 @@ class SerCon:
       if ord(c) & JOY_COMMAND_MASK == JOY_COMMAND_EXIT:
         break
 
+      if ord(c) & JOY_COMMAND_MASK == JOY_COMMAND_WAIT:
+          expected_duration += float(ord(c) & ~JOY_COMMAND_MASK)/100
+
       # does the server already sent a status byte?
-      if self.ser.inWaiting():
+      if self.ser.in_waiting > 0:
         break
+
+    # give other end time to execute joystream
+    while ((time.time() - start_time) < expected_duration):
+        if (self.ser.in_waiting > 0):
+            break
 
     # get status byte from server
     result,data = self.receive_data(1)

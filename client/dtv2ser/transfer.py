@@ -116,10 +116,6 @@ class Transfer:
     """Wait until the transfer result is available or a time out occurs
     Returns result code and transfer time
     """
-    # wait for CTS
-    result = self.cmdline.wait_for_server(self.server_ready_timeout)
-    if result != STATUS_OK:
-      return (result,0)
 
     # wait a bit for the result
     for x in xrange(self.get_result_retries):
