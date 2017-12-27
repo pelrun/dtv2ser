@@ -56,10 +56,7 @@ void exec_joy_stream(void)
   uint8_t led_on = 0;
   while(1) {
     // wait for next command
-    if(!uart_read(&command)) {
-      result = JOY_COMMAND_ERROR;
-      break;
-    }
+    while(!uart_read(&command));
 
     // extract command and value
     value = command & JOY_MASK;
@@ -86,6 +83,10 @@ void exec_joy_stream(void)
       timer_10ms = 0;
       while(timer_10ms<delay) {
       }
+    }
+    else {
+      result = JOY_COMMAND_ERROR;
+      break;
     }
   }
 
