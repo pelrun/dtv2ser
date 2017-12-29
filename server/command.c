@@ -150,9 +150,9 @@ void exec_command(void)
 void exec_is_alive(void)
 {
   led_transmit_on();
-  dtvlow_state_send();
+  dtvlow_state_clear();
   uint8_t status = dtvlow_is_alive(CMDLINE_ARG_WORD(0));
-  dtvlow_state_off();
+  dtvlow_state_clear();
   led_transmit_off();
   uart_send_hex_byte_crlf(status);
 }

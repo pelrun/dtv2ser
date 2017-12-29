@@ -56,7 +56,7 @@ uint8_t dtvtrans_send_mem_block(void)
   uint8_t status;
   uint16_t len = dtv_transfer_state.length;
 
-  dtvlow_state_send();
+  dtvlow_state_clear();
 
   // 1. send cmd write (uint8_t)
   status = dtvlow_send_byte(0x02);
@@ -111,13 +111,13 @@ uint8_t dtvtrans_send_mem_block(void)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte(chk);
 
-  dtvlow_state_recv();
+  dtvlow_state_clear();
 
   // 8. recv check
   uint8_t chk2 = 0;
   status = dtvlow_recv_byte(&chk2);
 
-  dtvlow_state_off();
+  dtvlow_state_clear();
 
   if(host_status!=TRANSFER_OK)
     return host_status;
@@ -136,7 +136,7 @@ uint8_t dtvtrans_recv_mem_block(void)
   uint8_t status;
   uint16_t len = dtv_transfer_state.length;
 
-  dtvlow_state_send();
+  dtvlow_state_clear();
 
   // 1. send cmd read (uint8_t)
   status = dtvlow_send_byte(0x01);
@@ -157,7 +157,7 @@ uint8_t dtvtrans_recv_mem_block(void)
   if(status==TRANSFER_OK)
     status = send_lohi(len);
 
-  dtvlow_state_recv();
+  dtvlow_state_clear();
 
   // 6. recv data
   uint8_t chk = 0;
@@ -191,7 +191,7 @@ uint8_t dtvtrans_recv_mem_block(void)
   if(status==TRANSFER_OK)
     status = dtvlow_recv_byte(&chk2);
 
-  dtvlow_state_off();
+  dtvlow_state_clear();
 
   if(host_status!=TRANSFER_OK)
     return host_status;
@@ -211,7 +211,7 @@ uint8_t dtvtrans_exec_mem(uint16_t addr)
 {
   uint8_t status;
 
-  dtvlow_state_send();
+  dtvlow_state_clear();
 
   // 1. send exec mem cmd (uint8_t)
   status = dtvlow_send_byte(0x03);
@@ -220,7 +220,7 @@ uint8_t dtvtrans_exec_mem(uint16_t addr)
     status = send_lohi(addr);
   }
 
-  dtvlow_state_off();
+  dtvlow_state_clear();
 
   return status;
 }
@@ -233,7 +233,7 @@ uint8_t dtvtrans_command(uint8_t command,uint8_t in_size,uint8_t *in_buf,uint8_t
 {
   uint8_t i,data[2],j;
 
-  dtvlow_state_send();
+  dtvlow_state_clear();
 
   // 1. first send command byte
   uint8_t status = dtvlow_send_byte(command);
@@ -254,7 +254,7 @@ uint8_t dtvtrans_command(uint8_t command,uint8_t in_size,uint8_t *in_buf,uint8_t
     if((status==TRANSFER_OK)&&(out_size>0)) {
 
       // enter receive state
-      dtvlow_state_recv();
+      dtvlow_state_clear();
 
       // variable size read: fetch size first
       uint8_t size = out_size;
@@ -294,7 +294,7 @@ uint8_t dtvtrans_command(uint8_t command,uint8_t in_size,uint8_t *in_buf,uint8_t
     }
   }
 
-  dtvlow_state_off();
+  dtvlow_state_clear();
   return status;
 }
 

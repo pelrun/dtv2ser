@@ -61,16 +61,7 @@
 // ----- low level dtvtrans -----
 
 // startup state
-void dtvlow_state_init(void);
-
-// default state (all wires off)
-void dtvlow_state_off(void);
-
-// setup state for send bytes (output:Dx,CLK,input:ACK)
-void dtvlow_state_send(void);
-
-// setup state for recv bytes (output:CLK,input:Dx,ACK)
-void dtvlow_state_recv(void);
+void dtvlow_state_clear(void);
 
 // perform a reset of the dtv. if knock=1 then enter dtvtrans
 void dtvlow_reset_dtv(uint8_t mode);

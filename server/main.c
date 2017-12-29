@@ -58,7 +58,7 @@ int main (void){
   uart_init();
 
   // dtvtrans interface init
-  dtvlow_state_init();
+  dtvlow_state_clear();
 
 #ifdef USE_BEEPER
   // welcome beep

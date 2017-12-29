@@ -1,9 +1,6 @@
 /*
  * dtvlow.c - low level dtvtrans protocol
  *
- * Written by
- *  Christian Vogelgsang <chris@vogelgsang.org>
- *
  * This file is part of dtv2ser.
  * See README for copyright notice.
  *
@@ -26,73 +23,22 @@
 
 #include <stdint.h>
 
-#include <avr/io.h>
-#include <util/delay.h>
-
 #include "board.h"
+
+#include "hal.h"
 
 #include "timer.h"
 #include "dtvlow.h"
 #include "transfer.h"
 #include "param.h"
 
-void dtvlow_state_init(void)
+void dtvlow_state_clear(void)
 {
-  // set reset as high input
-  DTVLOW_ACKRESET_DDR  &= ~DTVLOW_RESET_MASK;
-  // reset is high
-  DTVLOW_ACKRESET_PORT |=  DTVLOW_RESET_MASK;
+  dtvlow_rst(1);
 
-  dtvlow_state_off();
-}
-
-void dtvlow_state_off(void)
-{
-  // Input:  Dx, CLK, ACK
-  // Output: -
-
-  // set dx + clk input
-  DTVLOW_DATACLK_DDR   &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  // enable pullup
-  DTVLOW_DATACLK_PORT  |=   DTVLOW_DATA_MASK|DTVLOW_CLK_MASK;
-
-  // set ack input
-  DTVLOW_ACKRESET_DDR  &=  ~DTVLOW_ACK_MASK;
-  // enable pullup
-  DTVLOW_ACKRESET_PORT |=   DTVLOW_ACK_MASK;
-}
-
-void dtvlow_state_send(void)
-{
-  // Input:  ACK
-  // Output: Dx=1, CLK=1
-
-  // set dx + clk output
-  DTVLOW_DATACLK_DDR   |=  (DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  // all high
-  DTVLOW_DATACLK_PORT  |=  (DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-
-  // set ack input
-  DTVLOW_ACKRESET_DDR  &=  ~DTVLOW_ACK_MASK;
-  // enable pullup
-  DTVLOW_ACKRESET_PORT |=   DTVLOW_ACK_MASK;
-}
-
-void dtvlow_state_recv(void)
-{
-  // Input:  Dx, ACK, Reset
-  // Output: CLK=1
-
-  // set dx input, clk output
-  DTVLOW_DATACLK_DDR   &=  ~DTVLOW_DATA_MASK;
-  DTVLOW_DATACLK_DDR   |=   DTVLOW_CLK_MASK;
-  // all high
-  DTVLOW_DATACLK_PORT  |=  (DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-
-  // set ack input
-  DTVLOW_ACKRESET_DDR  &=  ~DTVLOW_ACK_MASK;
-  // enable pullup
-  DTVLOW_ACKRESET_PORT |=   DTVLOW_ACK_MASK;
+  dtvlow_data(0b111);
+  dtvlow_clk(1);
+  dtvlow_ack(1);
 }
 
 void dtvlow_reset_dtv(uint8_t mode)
@@ -100,12 +46,8 @@ void dtvlow_reset_dtv(uint8_t mode)
   uint16_t pre_delay = PARAM_WORD(PARAM_WORD_DTVLOW_PREPARE_RESET_DELAY);
   uint16_t delay = PARAM_WORD(PARAM_WORD_DTVLOW_RESET_DELAY);
 
-  // output: ACK,Dx,RST
-  DTVLOW_ACKRESET_DDR |= DTVLOW_ACK_MASK | DTVLOW_RESET_MASK;
-  DTVLOW_DATACLK_DDR  |= DTVLOW_DATA_MASK;
-
   // 1.) RST=0
-  DTVLOW_ACKRESET_PORT &= ~DTVLOW_RESET_MASK;
+  dtvlow_rst(0);
 
   // delay 10 ms
   timer_delay_100us(pre_delay);
@@ -113,26 +55,22 @@ void dtvlow_reset_dtv(uint8_t mode)
   // 2.) ACK=0, D0=0 - magick knock sequence for dtvtrans
   //     ACK=0, D1=0 - bypass dtvmon
   if(mode) {
-    DTVLOW_ACKRESET_PORT &= ~DTVLOW_ACK_MASK;
-    DTVLOW_DATACLK_PORT  &= ~(mode << DTVLOW_DATA_SHIFT);
+    dtvlow_data(mode);
+    dtvlow_ack(0);
   }
 
   // delay 10ms
   timer_delay_100us(pre_delay);
 
   // 3.) RST=1
-  DTVLOW_ACKRESET_PORT |= DTVLOW_RESET_MASK;
+  dtvlow_rst(1);
 
   // delay 1sec
   timer_delay_10ms(delay);
 
   // 4.) ACK=1, Dx=1
-  DTVLOW_ACKRESET_PORT |= DTVLOW_ACK_MASK;
-  DTVLOW_DATACLK_PORT  |= DTVLOW_DATA_MASK;
-
-  // input: ACK,Dx,RST
-  DTVLOW_ACKRESET_DDR  &=  ~(DTVLOW_ACK_MASK | DTVLOW_RESET_MASK);
-  DTVLOW_DATACLK_DDR   &=  ~DTVLOW_DATA_MASK;
+  dtvlow_data(0b111);
+  dtvlow_ack(1);
 }
 
 static uint8_t wait_ack(uint8_t wait_value)
@@ -142,8 +80,8 @@ static uint8_t wait_ack(uint8_t wait_value)
   uint16_t timeout = PARAM_WORD(PARAM_WORD_DTVLOW_WAIT_FOR_ACK_DELAY);
   timer_100us = 0;
   while(timer_100us<timeout) {
-    uint8_t value = DTVLOW_ACKRESET_PIN;
-    if((value & DTVLOW_ACK_MASK)==wait_value) {
+    uint8_t value = dtvlow_ack_get();
+    if(value==wait_value) {
       status = 1;
       break;
     }
@@ -173,20 +111,20 @@ uint8_t dtvlow_is_alive(uint16_t timeout)
     // trigger a clock pulse depending on state
     if((steps&1)==0) {
       // set clk=0
-      DTVLOW_DATACLK_PORT &= ~(DTVLOW_CLK_MASK);
+      dtvlow_clk(0);
       ack = 0;
     } else {
       // set clk=1
-      DTVLOW_DATACLK_PORT |= DTVLOW_CLK_MASK;
-      ack = DTVLOW_ACK_MASK;
+      dtvlow_clk(1);
+      ack = 1;
     }
 
     // make sure the ack signal has and holds the value
     uint8_t i=0;
     while(i<repeat) {
       // check ACK level
-      uint8_t value = DTVLOW_ACKRESET_PIN;
-      if((value & DTVLOW_ACK_MASK)!=ack)
+      uint8_t value = dtvlow_ack_get();
+      if(value!=ack)
         break;
 
       i++;
@@ -209,59 +147,47 @@ uint8_t dtvlow_is_alive(uint16_t timeout)
 
 uint8_t dtvlow_send_byte(uint8_t byte)
 {
-  uint8_t dx,value;
 
 #if 0
   // make sure ack is high
-  if(!wait_ack(DTVLOW_ACK_MASK))
+  if(!wait_ack(1))
     return TRANSFER_ERROR_DTVLOW_BEGIN;
 #endif
 
   // bit 7-5
-  dx = (byte >> 5) & 0x07;
-  // set dx and clk=0
-  value = DTVLOW_DATACLK_PORT;
-  value &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  value |= (dx << DTVLOW_DATA_SHIFT);
-  DTVLOW_DATACLK_PORT = value;
+  dtvlow_data(byte>>5);
+  dtvlow_clk(0);
 
   if(!wait_ack(0))
     return TRANSFER_ERROR_DTVLOW_NOACK1;
 
   // bit 4-2
-  dx = (byte >> 2) & 0x07;
   // set dx and clk=1
-  value = DTVLOW_DATACLK_PORT;
-  value &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  value |= (dx << DTVLOW_DATA_SHIFT) | DTVLOW_CLK_MASK;
-  DTVLOW_DATACLK_PORT = value;
+  dtvlow_data(byte>>2);
+  dtvlow_clk(1);
 
-  if(!wait_ack(DTVLOW_ACK_MASK))
+  if(!wait_ack(1))
     return TRANSFER_ERROR_DTVLOW_NOACK2;
 
   // bit 1-0
-  dx = byte & 0x03;
   // set dx and clk=0
-  value = DTVLOW_DATACLK_PORT;
-  value &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  value |= (dx << DTVLOW_DATA_SHIFT);
-  DTVLOW_DATACLK_PORT = value;
+  dtvlow_data(byte & 0x03);
+  dtvlow_clk(0);
 
   if(!wait_ack(0))
     return TRANSFER_ERROR_DTVLOW_NOACK3;
 
   // finally dx=1, clk=1
-  value = DTVLOW_DATACLK_PORT;
-  value |= (DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  DTVLOW_DATACLK_PORT = value;
+  dtvlow_data(0b111);
+  dtvlow_clk(1);
 
-  if(!wait_ack(DTVLOW_ACK_MASK))
+  if(!wait_ack(1))
     return TRANSFER_ERROR_DTVLOW_NOACK4;
 
   return TRANSFER_OK;
 }
 
-#define DELAY_FOR_RECV _delay_loop_1(delay);
+#define DELAY_FOR_RECV dtvlow_recv_delay(delay);
 
 uint8_t dtvlow_recv_byte(uint8_t *byte)
 {
@@ -272,34 +198,34 @@ uint8_t dtvlow_recv_byte(uint8_t *byte)
 
   // bit 7-5
   // clk=0
-  DTVLOW_DATACLK_PORT &= ~DTVLOW_CLK_MASK;
+  dtvlow_clk(0);
   if(!wait_ack(0))
     return TRANSFER_ERROR_DTVLOW_NOACK1;
   DELAY_FOR_RECV;
-  value = (DTVLOW_DATACLK_PIN & DTVLOW_DATA_MASK) >> DTVLOW_DATA_SHIFT;
+  value = dtvlow_data_get();
   *byte |= (value << 5);
 
   // bit 4-2
   // clk=1
-  DTVLOW_DATACLK_PORT |= DTVLOW_CLK_MASK;
-  if(!wait_ack(DTVLOW_ACK_MASK))
+  dtvlow_clk(1);
+  if(!wait_ack(1))
     return TRANSFER_ERROR_DTVLOW_NOACK2;
   DELAY_FOR_RECV;
-  value = (DTVLOW_DATACLK_PIN & DTVLOW_DATA_MASK) >> DTVLOW_DATA_SHIFT;
+  value = dtvlow_data_get();
   *byte |= (value << 2);
 
   // bit 1-0
   // clk=0
-  DTVLOW_DATACLK_PORT &= ~DTVLOW_CLK_MASK;
+  dtvlow_clk(0);
   if(!wait_ack(0))
     return TRANSFER_ERROR_DTVLOW_NOACK3;
   DELAY_FOR_RECV;
-  value = (DTVLOW_DATACLK_PIN & DTVLOW_DATA_MASK) >> DTVLOW_DATA_SHIFT;
+  value = dtvlow_data_get();
   *byte |= (value & 0x3);
 
   // finally, clk=1
-  DTVLOW_DATACLK_PORT |= DTVLOW_CLK_MASK;
-  if(!wait_ack(DTVLOW_ACK_MASK))
+  dtvlow_clk(1);
+  if(!wait_ack(1))
     return TRANSFER_ERROR_DTVLOW_NOACK4;
 
   return TRANSFER_OK;
@@ -309,50 +235,32 @@ uint8_t dtvlow_recv_byte(uint8_t *byte)
 
 uint8_t dtvlow_send_byte_boot(uint8_t byte)
 {
-  uint8_t dx,value;
-
-  // bit 7-6
-  dx = (byte >> 6) & 0x03;
-  // set dx and clk=0
-  value = DTVLOW_DATACLK_PORT;
-  value &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  value |= (dx << DTVLOW_DATA_SHIFT);
-  DTVLOW_DATACLK_PORT = value;
+  // bit 7-6 clk=0
+  dtvlow_data(byte>>6);
+  dtvlow_clk(0);
 
   if(!wait_ack(0))
     return TRANSFER_ERROR_DTVLOW_NOACK1;
 
-  // bit 5-4
-  dx = (byte >> 4) & 0x03;
-  // set dx and clk=1
-  value = DTVLOW_DATACLK_PORT;
-  value &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  value |= (dx << DTVLOW_DATA_SHIFT) | DTVLOW_CLK_MASK;
-  DTVLOW_DATACLK_PORT = value;
+  // bit 5-4 clk=1
+  dtvlow_data((byte>>4) & 0x03);
+  dtvlow_clk(1);
 
-  if(!wait_ack(DTVLOW_ACK_MASK))
+  if(!wait_ack(1))
     return TRANSFER_ERROR_DTVLOW_NOACK2;
 
-  // bit 3-2
-  dx = (byte >> 2) & 0x03;
-  // set dx and clk=0
-  value = DTVLOW_DATACLK_PORT;
-  value &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  value |= (dx << DTVLOW_DATA_SHIFT);
-  DTVLOW_DATACLK_PORT = value;
+  // bit 3-2 clk=0
+  dtvlow_data((byte>>2) & 0x03);
+  dtvlow_clk(0);
 
   if(!wait_ack(0))
     return TRANSFER_ERROR_DTVLOW_NOACK3;
 
-  // bit 1-0
-  dx = byte & 0x03;
-  // set dx and clk=1
-  value = DTVLOW_DATACLK_PORT;
-  value &= ~(DTVLOW_DATA_MASK|DTVLOW_CLK_MASK);
-  value |= (dx << DTVLOW_DATA_SHIFT) | DTVLOW_CLK_MASK;
-  DTVLOW_DATACLK_PORT = value;
+  // bit 1-0 clk=1
+  dtvlow_data(byte & 0x03);
+  dtvlow_clk(1);
 
-  if(!wait_ack(DTVLOW_ACK_MASK))
+  if(!wait_ack(1))
     return TRANSFER_ERROR_DTVLOW_NOACK4;
 
   return TRANSFER_OK;

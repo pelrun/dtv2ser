@@ -57,7 +57,7 @@ static uint8_t dtvtrans_send_boot(uint16_t base,uint16_t length)
   // send start byte
   uart_send(0);
 
-  dtvlow_state_send();
+  dtvlow_state_clear();
 
   // 1. send start (uint16_t)
   status = send_hilo_boot(base);
@@ -101,7 +101,7 @@ static uint8_t dtvtrans_send_boot(uint16_t base,uint16_t length)
   if(status==TRANSFER_OK)
     status = dtvlow_send_byte_boot(chk);
 
-  dtvlow_state_off();
+  dtvlow_state_clear();
 
   // send status (and chk if OK)
   uart_send(status);

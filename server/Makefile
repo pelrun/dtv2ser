@@ -92,7 +92,7 @@ OUTPUT = $(OUTDIR)/$(BASENAME)
 # source files
 SRC := $(BOARD).c
 SRC += util.c uart.c uartutil.c timer.c display.c param.c
-SRC += transfer.c sertrans.c dtvlow.c dtvtrans.c joy.c boot.c
+SRC += transfer.c sertrans.c dtvlow.c hal-avr.c dtvtrans.c boot.c
 SRC += cmdline.c cmdtable.c command.c
 SRC += transfercmd.c paramcmd.c joycmd.c
 SRC += main.c
