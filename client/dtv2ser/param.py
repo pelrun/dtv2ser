@@ -85,7 +85,7 @@ class Param:
     # issue command
     result = self.cmdline.do_command(cmd)
     if result != STATUS_OK:
-      return (result,0)
+      return result
 
     # read command result
     (result,data) = self.cmdline.get_byte()
