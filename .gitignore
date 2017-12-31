@@ -1,6 +1,7 @@
 *.lst
 *.elf
-*.hex
+server/BUILD/
 *.pyc
 *.d
 *.o
+*.srzip
