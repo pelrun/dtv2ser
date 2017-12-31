@@ -51,5 +51,13 @@
 
 #endif // HAVE_ctboard
 
+// ========== bluepill =======================================================
+
+#ifdef HAVE_bluepill
+
+#include "bluepill.h"
+
+#endif // HAVE_bluepill
+
 #endif
 
