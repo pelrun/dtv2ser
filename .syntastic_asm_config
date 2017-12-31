@@ -1,0 +1,1 @@
+let g:syntastic_asm_gcc_exec="arm_none_eabi_gcc"
