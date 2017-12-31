@@ -143,7 +143,7 @@ uint8_t transfer_mem(uint8_t mode,uint32_t base,uint32_t length,uint16_t block_s
 
   return transfer_end(result,
                       total_length,
-                      timer_now() - start);
+                      (timer_now() - start)/10);
 }
 
 uint8_t transfer_mem_block(uint8_t mode,uint8_t bank,uint16_t offset,uint16_t length)
