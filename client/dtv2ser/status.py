@@ -138,18 +138,18 @@ param_byte_name = (
   'Error Condition: Loops      (counter)',  # 1
   'Diagnose: Byte Pattern',                 # 2
   'Is Alive: Stable Repeat     (counter)',  # 3
-  'Is Alive: Stable Delay      (100us)'     # 4
+  'Is Alive: Stable Delay      (ms)'     # 4
 )
 param_word_name = (
-  'DTVlow: Wait For Ack        (100us)',    # 0
-  'DTVlow: Reset Prepare Delay (100us)',    # 1
-  'DTVlow: Reset Delay         (10ms)',     # 2
-  'Error Condition: Delay      (10ms)',     # 3
-  'Serial: RTS Timeout         (100us)',    # 4
-  'Serial: Read avail Timeout  (100us)',    # 5
-  'Serial: Write ready Timeout (100us)',    # 6
+  'DTVlow: Wait For Ack        (ms)',    # 0
+  'DTVlow: Reset Prepare Delay (ms)',    # 1
+  'DTVlow: Reset Delay         (ms)',     # 2
+  'Error Condition: Delay      (ms)',     # 3
+  'Serial: RTS Timeout         (ms)',    # 4
+  'Serial: Read avail Timeout  (ms)',    # 5
+  'Serial: Write ready Timeout (ms)',    # 6
   'Transfer: DTV Block Size    (bytes)',    # 7
-  'Is Alive: Idle Delay        (100us)'     # 8
+  'Is Alive: Idle Delay        (ms)'     # 8
 )
 
 def get_result_string(result):
