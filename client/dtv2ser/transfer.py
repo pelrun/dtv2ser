@@ -397,7 +397,7 @@ class Transfer:
        Returns status,duration"""
     result = self.cmdline.do_command("j")
     if result != STATUS_OK:
-      return result
+      return (result,0)
 
     return self.con.send_joy_stream(stream,callback)
 
