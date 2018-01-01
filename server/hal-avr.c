@@ -5,6 +5,8 @@
 
 #include "board.h"
 
+#include "hal.h"
+
 void dtvlow_ack(uint8_t val)
 {
   if (val)

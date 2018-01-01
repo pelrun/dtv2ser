@@ -30,7 +30,7 @@
 
 #include "joycmd.h"
 
-#include "joy.h"
+#include "hal.h"
 #include "display.h"
 #include "timer.h"
 #include "uart.h"

@@ -27,7 +27,7 @@
 #ifndef JOYCMD_H
 #define JOYCMD_H
 
-#include "joy.h"
+#include "hal.h"
 #include "command.h"
 
 void exec_joy_stream(void);
