@@ -25,6 +25,7 @@
 
 import os
 import glob
+import time
 
 import dtv2ser.sercon
 import dtv2ser.command
@@ -82,7 +83,10 @@ class App:
 
   def check_device(self):
     '''check version of firmware and client'''
-    (result,server_major,server_minor) = self.dtvcmd.get_server_version()
+    for retry in range(0,5):
+        (result,server_major,server_minor) = self.dtvcmd.get_server_version()
+        if result == STATUS_OK:
+            break
     if result != STATUS_OK:
       self.iotools.print_result(result)
       return False

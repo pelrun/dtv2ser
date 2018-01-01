@@ -54,7 +54,6 @@ class SerCon:
       if self.ser.isOpen():
         self.ser.flushInput()
         self.ser.flushOutput()
-        time.sleep(2) # wait for bootloader to finish
         self.valid = True
       else:
         self.valid = False
