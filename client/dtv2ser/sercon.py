@@ -353,9 +353,11 @@ class SerCon:
       callback(pos)
 
       # send a joy stream command
-      result = self.send_data(c)
-      if result != STATUS_OK:
-        return result,0
+      # ignore timeouts entirely
+      while True:
+        result = self.send_data(c)
+        if result == STATUS_OK:
+            break
 
       # END command?
       if ord(c) & JOY_COMMAND_MASK == JOY_COMMAND_EXIT:
