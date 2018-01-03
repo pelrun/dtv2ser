@@ -36,6 +36,7 @@
 #include "uart.h"
 #include "uartutil.h"
 #include "util.h"
+#include "timer.h"
 
 // ----- internal tools -----
 
@@ -295,6 +296,11 @@ uint8_t dtvtrans_command(uint8_t command,uint8_t in_size,uint8_t *in_buf,uint8_t
   }
 
   dtvlow_state_clear();
+
+  // give the dtv enough time to see the bus is released
+  // before allowing another command to execute
+  timer_delay_1ms(10);
+
   return status;
 }
 
