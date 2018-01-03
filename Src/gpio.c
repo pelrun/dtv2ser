@@ -89,9 +89,12 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, FIRE_Pin|RESET_Pin, GPIO_PIN_RESET);
 
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+
   /*Configure GPIO pin : PC13 */
   GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA0 PA1 PA2 PA3 
@@ -176,6 +179,40 @@ void dtvlow_recv_delay(uint8_t delay)
   // shouldn't actually be needed.
 }
 
+void joy_begin(void)
+{
+  joy_out(0);
+}
+
+void joy_out(uint8_t value)
+{
+  HAL_GPIO_WritePin(GPIOB, UP_Pin, !(value & JOY_MASK_UP));
+  HAL_GPIO_WritePin(GPIOB, DOWN_Pin, !(value & JOY_MASK_DOWN));
+  HAL_GPIO_WritePin(GPIOB, LEFT_Pin, !(value & JOY_MASK_LEFT));
+  HAL_GPIO_WritePin(GPIOB, RIGHT_Pin, !(value & JOY_MASK_RIGHT));
+  HAL_GPIO_WritePin(GPIOA, FIRE_Pin, !(value & JOY_MASK_FIRE));
+}
+
+void joy_end(void)
+{
+  joy_out(0);
+}
+
+void hal_led_on(uint8_t mask)
+{
+  if (mask & 4)
+  {
+    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,0);
+  }
+}
+
+void hal_led_off(uint8_t mask)
+{
+  if (mask & 4)
+  {
+    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1);
+  }
+}
 /* USER CODE END 2 */
 
 /**

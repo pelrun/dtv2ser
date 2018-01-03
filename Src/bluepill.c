@@ -21,6 +21,8 @@
  *
  */
 
+#include <stdint.h>
+
 #include "bluepill.h"
 
 // Board init

@@ -95,7 +95,6 @@ Src/usbd_conf.c \
 Src/usbd_desc.c \
 Src/uart.c \
 Src/timer.c \
-Src/joy.c \
 Src/crc16.c \
 Src/bluepill.c \
 Src/server/boot.c \
@@ -162,6 +161,9 @@ C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F103xB \
 -DHAVE_bluepill \
+-DUSE_DIAGNOSE \
+-DUSE_BOOT \
+-DUSE_JOYSTICK \
 -DVERSION="$(VERSION)" \
 -DVERSION_MIN="$(VERSION_MIN)" \
 -DVERSION_MAJ="$(VERSION_MAJ)"

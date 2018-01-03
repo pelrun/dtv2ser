@@ -29,16 +29,6 @@
 #ifndef BLUEPILLBOARD_H
 #define BLUEPILLBOARD_H
 
-#define JOY_PORT        PORTC
-#define JOY_DDR         DDRC
-#define JOY_MASK        0x1f
-
-#define JOY_MASK_UP     0x01
-#define JOY_MASK_DOWN   0x02
-#define JOY_MASK_LEFT   0x04
-#define JOY_MASK_RIGHT  0x08
-#define JOY_MASK_FIRE   0x10
-
 // ----- BOARD -----
 void board_init(void);
 
@@ -47,21 +37,21 @@ void board_init(void);
 void led_init(void);
 
 // set led given by mask
-#define led_on(mask) 
+void hal_led_on(uint8_t mask);
 // set led off 
-#define led_off(mask)
+void hal_led_off(uint8_t mask);
 
 // 1. Ready LED (green)
-#define led_ready_on()      led_on(1)
-#define led_ready_off()     led_off(1)
+#define led_ready_on()      hal_led_on(1)
+#define led_ready_off()     hal_led_off(1)
 
 // 2. Error LED (red)
-#define led_error_on()      led_on(4)
-#define led_error_off()     led_off(4)
+#define led_error_on()      hal_led_on(4)
+#define led_error_off()     hal_led_off(4)
 
 // 3. Transmit LED (yellow)
-#define led_transmit_on()   led_on(2)
-#define led_transmit_off()  led_off(2)
+#define led_transmit_on()   hal_led_on(2)
+#define led_transmit_off()  hal_led_off(2)
 
 // ----- RTS & CTS -----
 // init rts,cts signalling

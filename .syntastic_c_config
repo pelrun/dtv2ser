@@ -1,6 +1,9 @@
 -DUSE_HAL_DRIVER
 -DSTM32F103xB
 -DHAVE_bluepill
+-DUSE_DIAGNOSE
+-DUSE_BOOT
+-DUSE_JOYSTICK
 -IInc
 -IDrivers/STM32F1xx_HAL_Driver/Inc
 -IDrivers/STM32F1xx_HAL_Driver/Inc/Legacy
