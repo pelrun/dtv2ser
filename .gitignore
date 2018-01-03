@@ -1,6 +1,7 @@
 *.lst
 *.elf
 server/BUILD/
+arm/build/
 *.pyc
 *.d
 *.o
