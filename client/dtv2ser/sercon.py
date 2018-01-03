@@ -131,7 +131,7 @@ class SerCon:
       return STATUS_OK;
 
   def receive_block(self,start,length,block_size,callback=lambda x:True):
-    """Send a large block of data in blocks given by block_size.
+    """Receive a large block of data in blocks given by block_size.
     Use optional callback to get feedback while transfer.
     Returns (result,duration,data).
     """
@@ -159,7 +159,6 @@ class SerCon:
       status,raw = self.receive_data(get_len)
       if status!=STATUS_OK:
         break
-      data += raw
 
       # receive crc16
       status,crc16raw = self.receive_data(2)
@@ -178,6 +177,7 @@ class SerCon:
       if status!=STATUS_OK:
         break
 
+      data += raw
       pos += get_len
       length -= get_len
       start += get_len
@@ -187,7 +187,12 @@ class SerCon:
       end_byte = 0x01
     else:
       end_byte = 0x00
-    status = self.send_data(chr(end_byte))
+    self.send_data(chr(end_byte))
+
+    if end_byte == 0x01:
+      while self.ser.in_waiting>0:
+          self.ser.flushInput()
+          time.sleep(0.5)
 
     # end upload
     end_time = time.time()
