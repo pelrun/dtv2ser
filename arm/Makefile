@@ -36,18 +36,8 @@ VERSION=$(VERSION_MAJ).$(VERSION_MIN)
 #######################################
 # source path
 SOURCES_DIR =  \
-Application \
-Application/MAKEFILE \
-Application/User \
-Application/User/Src \
-Application/User/Src/gpio.c \
-Application/User/Src/main.c \
-Application/User/Src/stm32f1xx_hal_msp.c \
-Application/User/Src/stm32f1xx_it.c \
-Application/User/Src/usb_device.c \
-Application/User/Src/usbd_cdc_if.c \
-Application/User/Src/usbd_conf.c \
-Application/User/Src/usbd_desc.c \
+Src \
+..\server \
 Drivers \
 Drivers/CMSIS \
 Drivers/STM32F1xx_HAL_Driver \
@@ -86,6 +76,7 @@ Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
 Src/gpio.c \
 Src/main.c \
+Src/param.c \
 Src/stm32f1xx_hal_msp.c \
 Src/stm32f1xx_it.c \
 Src/system_stm32f1xx.c \
@@ -97,21 +88,20 @@ Src/uart.c \
 Src/timer.c \
 Src/crc16.c \
 Src/bluepill.c \
-Src/server/boot.c \
-Src/server/cmdline.c \
-Src/server/cmdtable.c \
-Src/server/command.c \
-Src/server/display.c \
-Src/server/dtvtrans.c \
-Src/server/dtvlow.c \
-Src/server/joycmd.c \
-Src/server/param.c \
-Src/server/paramcmd.c \
-Src/server/sertrans.c \
-Src/server/transfer.c \
-Src/server/transfercmd.c \
-Src/server/uartutil.c \
-Src/server/util.c
+../server/boot.c \
+../server/cmdline.c \
+../server/cmdtable.c \
+../server/command.c \
+../server/display.c \
+../server/dtvtrans.c \
+../server/dtvlow.c \
+../server/joycmd.c \
+../server/paramcmd.c \
+../server/sertrans.c \
+../server/transfer.c \
+../server/transfercmd.c \
+../server/uartutil.c \
+../server/util.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -180,7 +170,7 @@ C_INCLUDES =  \
 -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -IDrivers/CMSIS/Device/ST/STM32F1xx/Include \
 -IDrivers/CMSIS/Include \
--ISrc/server
+-I../server
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
@@ -216,10 +206,10 @@ all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET
 #######################################
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
-vpath %.c $(sort $(dir $(C_SOURCES)))
+vpath %.c $(dir $(C_SOURCES))
 # list of ASM program objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
-vpath %.s $(sort $(dir $(ASM_SOURCES)))
+vpath %.s $(dir $(ASM_SOURCES))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
