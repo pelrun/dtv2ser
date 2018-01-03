@@ -105,6 +105,9 @@ uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
+
+volatile uint8_t cdc_receive_blocked = 0;
+
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -267,14 +270,14 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-
+  cdc_receive_blocked = 1;
   if (uart_unread(Buf,(uint16_t)*Len))
   {
-    return (USBD_OK);
+    // allow next packet to be received
+    CDC_Resume_RX();
   }
 
-  return USBD_FAIL;
+  return USBD_OK;
   /* USER CODE END 6 */ 
 }
 
@@ -291,19 +294,31 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
   */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
-  uint8_t result = USBD_OK;
   /* USER CODE BEGIN 7 */ 
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-  if (hcdc->TxState != 0){
+  if (hcdc->TxState != 0)
+  {
     return USBD_BUSY;
   }
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
-  result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+  while(USBD_CDC_TransmitPacket(&hUsbDeviceFS) != USBD_OK);
   /* USER CODE END 7 */ 
-  return result;
+  return USBD_OK;
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+
+void CDC_Resume_RX(void)
+{
+  __disable_irq();
+  if (cdc_receive_blocked)
+  {
+    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+    cdc_receive_blocked = 0;
+  }
+  __enable_irq();
+}
+
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**
