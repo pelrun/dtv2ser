@@ -295,7 +295,7 @@ class Flash:
 
     # run servlet
     print "  generating flash map on DTV"
-    (result,sr,acc,xr,yr,duration) = app.dtvcmd.sys_call(self.servlet_gen_map)
+    (result,sr,acc,xr,yr,duration) = app.dtvcmd.sys_call(self.servlet_gen_map,timeout=30)
     app.iotools.print_result(result)
     app.iotools.print_duration(duration)
     if result != STATUS_OK:
