@@ -33,6 +33,10 @@ class CmdLine:
     """Setup command line handler with connection object"""
     self.con = con
 
+  def wait_for_data(self,timeout):
+    """Pass on to connection"""
+    return self.con.wait_for_data(timeout)
+
   # ----- read result of server -----
 
   def get_status_byte(self):

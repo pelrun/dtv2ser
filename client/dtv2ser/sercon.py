@@ -92,6 +92,19 @@ class SerCon:
       return CLIENT_ERROR_SERVER_TIMEOUT
     return STATUS_OK
 
+  def wait_for_data(self,timeout=0,sleep=0.1):
+    """Wait for server to send us some data
+    Returns result code.
+    """
+    if timeout == 0:
+      timeout = self.ready_timeout
+    steps = int(timeout / sleep)
+    for t in xrange(steps):
+      if self.ser.in_waiting > 0:
+        return STATUS_OK
+      time.sleep(sleep)
+    return CLIENT_ERROR_SERVER_TIMEOUT
+
   # ----- block transfers -----
 
   def dump_cts(self,num):
