@@ -1,10 +1,14 @@
 import serial
 import pygame as pg
 import time
+import os
 
 state = 0
 
-ser = serial.Serial(port='/dev/ttyUSB0',baudrate=250000,rtscts=1)
+port = os.environ.get('DTV2SER_PORT','/dev/ttyUSB0')
+speed = os.environ.get('DTV2SER_SPEED',250000)
+
+ser = serial.Serial(port=port,baudrate=speed,rtscts=1)
 time.sleep(2)
 ser.write('j\n') # enter joystream mode
 
