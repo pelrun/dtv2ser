@@ -52,8 +52,10 @@ class SerCon:
                               rtscts=1,
                               dsrdtr=0)
       if self.ser.isOpen():
-        self.ser.flushInput()
         self.ser.flushOutput()
+        while self.ser.in_waiting > 0:
+          self.ser.flushInput()
+          time.sleep(0.1)
         self.valid = True
       else:
         self.valid = False
