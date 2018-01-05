@@ -26,7 +26,7 @@ OPT = -Og
 
 
 VERSION_MAJ = 0
-VERSION_MIN = 5
+VERSION_MIN = 6
 
 # combine version
 VERSION=$(VERSION_MAJ).$(VERSION_MIN)

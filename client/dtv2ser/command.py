@@ -35,9 +35,9 @@ from dtv2ser.state import State
 class Command:
   """The high level commands of dtv2ser."""
 
-  # client version: 0.5
+  # client version: 0.6
   client_major = 0
-  client_minor = 5
+  client_minor = 6
 
   def __init__(self,con):
     self.cmdline   = CmdLine(con)
