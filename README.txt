@@ -49,6 +49,7 @@ The dtv2ser package currently consists of the following parts:
     an optional reset switch and optional external power supply.
   - dtv2usb: on board 3 pin power selector: either from USB or external
   - 0.5: added Arduino 2009 board support.
+  - 0.6: added ARM blue pill port (see README.arm.txt)
   --> see hardware/ directory
  
  2.) dtv2ser Server Firmware

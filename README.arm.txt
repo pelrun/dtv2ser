@@ -40,6 +40,10 @@ A9    Reset       9
 
 G     Ground      6
 
+There's an incorrect resistor on the bluepill that prevents proper USB resets
+(you will need to physically disconnect/reconnect the USB plug to re-enumerate.)
+Replacing R10 on the back of the board with a 1.5k will fix this.
+
 Building
 ========
 

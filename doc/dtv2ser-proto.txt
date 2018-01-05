@@ -62,9 +62,8 @@ transmission by issuing transfer query commands via in the command line.
 
 1.3 Error Handling
 
-Both sides use timeouts in RTS/CTS signaling to detect transmission problems.
-If data bytes are requested from the client then the server waits for RTS to
-become active. If a timeout occurs then the transmission is aborted and the
+Both sides use timeouts to detect transmission problems.
+If a timeout occurs then the transmission is aborted and the
 server runs an error cycle. In this cycle all transmissions are blocked and
 this results in an abort on both sides of the connection. After an error the
 server returns to the command mode and waits for new instructions. During the
