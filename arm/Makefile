@@ -24,6 +24,7 @@ DEBUG = 1
 # optimization
 OPT = -Og
 
+BOOTLOADABLE = 0
 
 VERSION_MAJ = 0
 VERSION_MIN = 6
@@ -190,7 +191,16 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
+
+ifeq ($(BOOTLOADABLE), 1)
+LDSCRIPT = STM32F103C8Tx_FLASH_0x2000.ld
+VECT_TAB_OFFSET = 0x2000
+else
 LDSCRIPT = STM32F103C8Tx_FLASH.ld
+VECT_TAB_OFFSET = 0
+endif
+
+CFLAGS += -DVECT_TAB_OFFSET=$(VECT_TAB_OFFSET)
 
 # libraries
 LIBS = -lc -lm -lnosys
