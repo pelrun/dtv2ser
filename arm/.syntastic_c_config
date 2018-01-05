@@ -11,4 +11,4 @@
 -IMiddlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
 -IDrivers/CMSIS/Device/ST/STM32F1xx/Include
 -IDrivers/CMSIS/Include
--ISrc/server
+-I../server
