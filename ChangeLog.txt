@@ -1,3 +1,22 @@
+version 0.6 - 5.1.2018
+
+ dtv2sertrans:
+  * improved startup communications to make it more robust
+
+ dtv2ser protocol:
+  * remove OOB signalling using CTS - CTS is now for flow control only,
+    protocol uses only the data on the line. Allows use of generic serial
+    transports e.g. bluetooth or usb that synthesise flow control signals at
+    each end.
+
+ dtv2ser firmware:
+  * Refactoring to separate AVR-specific code to allow porting
+  * ARM port for the STM32F103 blue pill board ($2)
+  * Remove joystream constraints - can now be used to relay joystick control
+    from the PC end.
+  * Refactor timebase to 1ms instead of split 100us/10ms. This requires
+    stored parameters to be reset to new defaults.
+
 version 0.5 - 11.12.2010
 
  dtv2sertrans:
