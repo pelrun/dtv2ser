@@ -49,7 +49,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 /* USER CODE BEGIN INCLUDE */
-extern uint8_t uart_unread(uint8_t *data, uint16_t len);
+extern void uart_load_rx(uint8_t *data, uint16_t len);
 /* USER CODE END INCLUDE */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -271,11 +271,7 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
   cdc_receive_blocked = 1;
-  if (uart_unread(Buf,(uint16_t)*Len))
-  {
-    // allow next packet to be received
-    CDC_Resume_RX();
-  }
+  uart_load_rx(Buf,(uint16_t)*Len);
 
   return USBD_OK;
   /* USER CODE END 6 */ 

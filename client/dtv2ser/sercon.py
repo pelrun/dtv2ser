@@ -379,7 +379,7 @@ class SerCon:
       if ord(c) & JOY_COMMAND_MASK == JOY_COMMAND_WAIT:
           expected_duration += float(ord(c) & ~JOY_COMMAND_MASK)/100
 
-      # does the server already sent a status byte?
+      # has the server already sent a status byte?
       if self.ser.in_waiting > 0:
         break
 

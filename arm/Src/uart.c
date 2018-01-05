@@ -63,22 +63,20 @@ static inline uint8_t circbuf_read(Circular_Buffer_t *c)
   return c->data[c->out++ & (CIRCBUF_SIZE-1)];
 }
 
-
-static Circular_Buffer_t rx_buf;
-static Circular_Buffer_t tx_buf;
-
 // ---------- init ----------------------------------------------------------
+
+static uint8_t rx_in = 0, rx_out = 0, *rx_buf = NULL;
 
 void uart_init(void)
 {
-  rx_buf.in = rx_buf.out = 0;
+  rx_in = rx_out = 0;
 }
 
 // ---------- read ----------------------------------------------------------
 
 uint8_t uart_read_data_available(void)
 {
-  return rx_buf.in != rx_buf.out;
+  return rx_in != rx_out;
 }
 
 void uart_stop_reception(void)
@@ -87,34 +85,30 @@ void uart_stop_reception(void)
 
 void uart_start_reception(void)
 {
-//  rx_buf.in = rx_buf.out;
 }
 
-uint8_t uart_unread(uint8_t *data, uint16_t len)
+void uart_load_rx(uint8_t *data, uint16_t len)
 {
-  for (uint16_t i=0; i<len; i++)
-  {
-    circbuf_write(&rx_buf, data[i]);
-  }
-
-  return (circbuf_free(&rx_buf) > CDC_DATA_FS_MAX_PACKET_SIZE);
+  rx_in = len;
+  rx_out = 0;
+  rx_buf = data;
 }
 
 uint8_t uart_read(uint8_t *data)
 {
   timeout_t t = TIMEOUT(PARAM_WORD(PARAM_WORD_SERIAL_READ_AVAIL_TIMEOUT));
-  while(rx_buf.in == rx_buf.out) {
+  while(rx_in == rx_out) {
     if (timer_expired(&t)) {
       return 0;
     }
     __WFI();
   }
 
-  *data = circbuf_read(&rx_buf);
+  *data = rx_buf[rx_out++];
 
-  // allow more data in if there's room in the buffer
-  if (circbuf_free(&rx_buf) >= CDC_DATA_FS_MAX_PACKET_SIZE*3)
+  if (rx_in == rx_out)
   {
+    // let USB give us another packet
     CDC_Resume_RX();
   }
 
@@ -123,6 +117,8 @@ uint8_t uart_read(uint8_t *data)
 
 // ---------- send ----------------------------------------------------------
 #if 0
+static Circular_Buffer_t tx_buf;
+
 void uart_flush(void)
 {
   __disable_irq();
